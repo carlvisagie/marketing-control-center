@@ -11,6 +11,7 @@ import Settings from "./pages/Settings";
 import FeatureFlags from "./pages/FeatureFlags";
 import LiveMetrics from "./pages/LiveMetrics";
 import AIInsights from "./pages/AIInsights";
+import TikTok from "./pages/TikTok";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/activity" component={ActivityLog} />
             <Route path="/settings" component={Settings} />
             <Route path="/flags" component={FeatureFlags} />
+            <Route path="/tiktok" component={TikTok} />
             <Route>
               <div className="flex items-center justify-center h-full">
                 <p className="text-slate-400">Page not found</p>

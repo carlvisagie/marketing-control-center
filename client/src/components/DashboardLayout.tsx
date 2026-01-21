@@ -11,7 +11,8 @@ import {
   Bell,
   Flag,
   BarChart3,
-  Brain
+  Brain,
+  Video
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ const navItems = [
   { path: "/approvals", label: "Approvals", icon: CheckSquare, badge: 2 },
   { path: "/activity", label: "Activity Log", icon: Activity },
   { path: "/flags", label: "Feature Flags", icon: Flag },
+  { path: "/tiktok", label: "TikTok", icon: Video },
   { path: "/settings", label: "Settings", icon: Settings },
 ];
 
