@@ -65,14 +65,14 @@ async function startServer() {
   const port = await findAvailablePort(preferredPort);
 
   if (port !== preferredPort) {
-    console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
+    console.info(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
 
   server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
-    console.log(`\n=== ZERO MANUS DEPENDENCIES ===`);
-    console.log(`This server is fully portable and self-hostable.`);
-    console.log(`================================\n`);
+    console.info(`Server running on http://localhost:${port}/`);
+    console.info(`\n=== ZERO MANUS DEPENDENCIES ===`);
+    console.info(`This server is fully portable and self-hostable.`);
+    console.info(`================================\n`);
   });
 }
 

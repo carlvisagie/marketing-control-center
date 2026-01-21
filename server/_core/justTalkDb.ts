@@ -35,7 +35,7 @@ export async function getJustTalkDb() {
       });
       
       _justTalkDb = drizzle(client);
-      console.log("[JustTalkDB] Connected to Just Talk database (READ-ONLY)");
+      console.info("[JustTalkDB] Connected to Just Talk database (READ-ONLY)");
     } catch (error) {
       console.error("[JustTalkDB] Failed to connect:", error);
       return null;
