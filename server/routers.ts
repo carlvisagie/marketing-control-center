@@ -12,6 +12,7 @@ import { abTestingRouter } from "./routers/abTesting";
 import { reportingRouter } from "./routers/reporting";
 import { autoOptimizeRouter } from "./routers/autoOptimize";
 import { tiktokRouter } from "./routers/tiktok";
+import { socialPlatformsRouter } from "./routers/socialPlatforms";
 
 export const appRouter = router({
   // Simple JWT Authentication (no Manus OAuth)
@@ -34,6 +35,9 @@ export const appRouter = router({
 
   // TikTok Content & Send-to-Phone
   tiktok: tiktokRouter,
+
+  // Social Platform Connections & Unified Posting
+  social: socialPlatformsRouter,
 });
 
 export type AppRouter = typeof appRouter;

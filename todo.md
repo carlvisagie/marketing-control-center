@@ -70,8 +70,22 @@
 - [x] Convert to PostgreSQL for Just Talk database connection
 - [ ] Configure Twilio for SMS/WhatsApp send-to-phone
 - [ ] Configure OpenAI API for content generation
-- [ ] Build Facebook API integration
-- [ ] Build Instagram API integration
+- [ ] Build Facebook/Meta Graph API integration
+- [ ] Build Instagram API integration (via Meta)
 - [ ] Build LinkedIn API integration
+- [ ] Create platform connection UI with OAuth flows
+- [ ] Build 24/7 Attack automation engine
 - [ ] Update Dashboard with real platform metrics
 - [ ] Test all integrations
+
+## Phase 11: Custom Unified Social Posting Engine
+- [ ] Set up Meta Developer App (Facebook/Instagram)
+- [ ] Build Meta Graph API integration
+- [ ] Set up LinkedIn Developer App
+- [ ] Build LinkedIn API integration
+- [ ] Set up TikTok Developer App
+- [ ] Build TikTok API integration
+- [ ] Build unified posting engine with scheduling
+- [ ] Build analytics aggregator
+- [ ] Connect 24/7 Attack to autonomous posting
+- [ ] Test and deploy complete system
