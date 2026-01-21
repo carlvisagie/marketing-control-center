@@ -7,7 +7,7 @@
 
 import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
-import { invokeLLM } from "../_core/llm";
+import { invokeLLM } from "../_core/openai";
 import { queryJustTalk } from "../_core/justTalkDb";
 import { sql } from "drizzle-orm";
 

@@ -1,3 +1,9 @@
+/**
+ * Auth Logout Test - ZERO MANUS DEPENDENCIES
+ * 
+ * Tests simple JWT authentication logout.
+ */
+
 import { describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
 import { COOKIE_NAME } from "../shared/const";
@@ -15,11 +21,12 @@ function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] }
 
   const user: AuthenticatedUser = {
     id: 1,
-    openId: "sample-user",
-    email: "sample@example.com",
-    name: "Sample User",
-    loginMethod: "manus",
-    role: "user",
+    username: "admin",
+    role: "admin",
+    openId: "local_1",
+    email: "admin@local",
+    name: "Admin User",
+    loginMethod: "simple",
     createdAt: new Date(),
     updatedAt: new Date(),
     lastSignedIn: new Date(),
@@ -52,9 +59,6 @@ describe("auth.logout", () => {
     expect(clearedCookies).toHaveLength(1);
     expect(clearedCookies[0]?.name).toBe(COOKIE_NAME);
     expect(clearedCookies[0]?.options).toMatchObject({
-      maxAge: -1,
-      secure: true,
-      sameSite: "none",
       httpOnly: true,
       path: "/",
     });

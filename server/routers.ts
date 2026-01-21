@@ -1,7 +1,11 @@
-import { COOKIE_NAME } from "@shared/const";
-import { getSessionCookieOptions } from "./_core/cookies";
-import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+/**
+ * Main Router - ZERO MANUS DEPENDENCIES
+ * 
+ * All routers use direct integrations (OpenAI, S3, JWT) instead of Manus proxies.
+ */
+
+import { router } from "./_core/trpc";
+import { simpleAuthRouter } from "./routers/simpleAuthRouter";
 import { analyticsRouter } from "./routers/analytics";
 import { aiRecommendationsRouter } from "./routers/aiRecommendations";
 import { abTestingRouter } from "./routers/abTesting";
@@ -9,23 +13,13 @@ import { reportingRouter } from "./routers/reporting";
 import { autoOptimizeRouter } from "./routers/autoOptimize";
 
 export const appRouter = router({
-    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
-  system: systemRouter,
-  auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
-    logout: publicProcedure.mutation(({ ctx }) => {
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
-    }),
-  }),
+  // Simple JWT Authentication (no Manus OAuth)
+  auth: simpleAuthRouter,
 
   // Just Talk Analytics (READ-ONLY)
   analytics: analyticsRouter,
 
-  // AI-Powered Marketing Intelligence
+  // AI-Powered Marketing Intelligence (Direct OpenAI)
   ai: aiRecommendationsRouter,
 
   // A/B Testing & Auto-Optimization

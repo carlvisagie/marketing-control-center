@@ -29,3 +29,13 @@
 - READ-ONLY access to Just Talk database - NO WRITES
 - Just Talk must never be affected by Marketing Control Center
 - Separate deployment - independent operation
+
+## Phase 6: ZERO MANUS DEPENDENCIES (CRITICAL)
+- [x] Replace Manus LLM proxy with direct OpenAI API
+- [x] Replace Manus OAuth with simple JWT authentication
+- [x] Replace Manus storage proxy with direct S3
+- [x] Remove vite-plugin-manus-runtime
+- [x] Remove all forge.manus.im references
+- [x] Remove BUILT_IN_FORGE dependencies
+- [x] Test all features work without Manus
+- [x] Document portable self-hosting deployment

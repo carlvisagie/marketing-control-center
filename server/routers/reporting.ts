@@ -9,7 +9,7 @@ import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { queryJustTalk } from "../_core/justTalkDb";
 import { sql } from "drizzle-orm";
-import { invokeLLM } from "../_core/llm";
+import { invokeLLM } from "../_core/openai";
 
 // Helper to extract string content from LLM response
 function extractContent(content: string | Array<{ type: string; text?: string }>): string {

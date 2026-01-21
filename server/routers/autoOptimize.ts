@@ -7,7 +7,7 @@
 
 import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
-import { invokeLLM } from "../_core/llm";
+import { invokeLLM } from "../_core/openai";
 
 // Helper to extract string content from LLM response
 function extractContent(content: string | Array<{ type: string; text?: string }>): string {
