@@ -15,11 +15,8 @@ export const ENV = {
   adminUsername: process.env.ADMIN_USERNAME ?? "admin",
   adminPasswordHash: process.env.ADMIN_PASSWORD_HASH ?? "",
   
-  // Database (Marketing Control Center's own DB)
-  databaseUrl: process.env.DATABASE_URL ?? "",
-  
-  // Just Talk Database Connection (READ-ONLY)
-  justTalkDatabaseUrl: process.env.JUST_TALK_DATABASE_URL ?? "",
+  // Database - Uses Just Talk PostgreSQL database
+  databaseUrl: process.env.JUST_TALK_DATABASE_URL || process.env.DATABASE_URL || "",
   
   // OpenAI (Direct API - no proxy)
   openaiApiKey: process.env.OPENAI_API_KEY ?? "",
@@ -68,7 +65,6 @@ export function getEnvStatus(): Record<string, boolean> {
     jwtSecret: Boolean(ENV.jwtSecret),
     adminPasswordHash: Boolean(ENV.adminPasswordHash),
     databaseUrl: Boolean(ENV.databaseUrl),
-    justTalkDatabaseUrl: Boolean(ENV.justTalkDatabaseUrl),
     openaiApiKey: Boolean(ENV.openaiApiKey),
     s3Configured: Boolean(ENV.s3Bucket && ENV.s3AccessKeyId && ENV.s3SecretAccessKey),
     twilioConfigured: Boolean(ENV.twilioAccountSid && ENV.twilioAuthToken),

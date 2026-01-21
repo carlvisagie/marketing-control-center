@@ -20,7 +20,7 @@ let _justTalkDb: ReturnType<typeof drizzle> | null = null;
  * Returns null if not configured
  */
 export async function getJustTalkDb() {
-  if (!ENV.justTalkDatabaseUrl) {
+  if (!ENV.databaseUrl) {
     console.warn("[JustTalkDB] JUST_TALK_DATABASE_URL not configured");
     return null;
   }
@@ -28,7 +28,7 @@ export async function getJustTalkDb() {
   if (!_justTalkDb) {
     try {
       // Create read-only connection
-      const client = postgres(ENV.justTalkDatabaseUrl, {
+      const client = postgres(ENV.databaseUrl, {
         max: 5, // Limit connections to avoid overloading Just Talk
         idle_timeout: 20,
         connect_timeout: 10,
