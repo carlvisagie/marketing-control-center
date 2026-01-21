@@ -1,8 +1,10 @@
 /**
  * Simple Auth Router - ZERO MANUS DEPENDENCIES
  * 
- * Provides login/logout endpoints using simple JWT authentication.
- * No external OAuth provider required.
+ * HARDENED FOR PRODUCTION:
+ * - Rate limiting via client IP
+ * - No info leakage in error messages
+ * - Secure password hash generation
  */
 
 import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
@@ -13,11 +15,34 @@ import {
   clearAuthCookie,
   isSimpleAuthConfigured,
   generatePasswordHash,
+  getAuthStatus,
 } from "../_core/simpleAuth";
+
+/**
+ * Get client IP from request, handling proxies
+ */
+function getClientIp(req: { headers: Record<string, string | string[] | undefined>; ip?: string }): string {
+  // Check X-Forwarded-For header (set by proxies like Render, Cloudflare)
+  const forwarded = req.headers["x-forwarded-for"];
+  if (forwarded) {
+    const ip = Array.isArray(forwarded) ? forwarded[0] : forwarded.split(",")[0];
+    return ip?.trim() || "unknown";
+  }
+  
+  // Check X-Real-IP header
+  const realIp = req.headers["x-real-ip"];
+  if (realIp) {
+    return Array.isArray(realIp) ? realIp[0] : realIp;
+  }
+  
+  // Fall back to direct IP
+  return req.ip || "unknown";
+}
 
 export const simpleAuthRouter = router({
   /**
    * Login with username and password
+   * HARDENED: Rate limiting, no info leakage
    */
   login: publicProcedure
     .input(z.object({
@@ -25,7 +50,8 @@ export const simpleAuthRouter = router({
       password: z.string().min(1),
     }))
     .mutation(async ({ input, ctx }) => {
-      const result = await login(input.username, input.password);
+      const clientIp = getClientIp(ctx.req);
+      const result = await login(input.username, input.password, clientIp);
       
       if (result.success && result.token) {
         setAuthCookie(ctx.res, result.token);
@@ -51,20 +77,21 @@ export const simpleAuthRouter = router({
   }),
 
   /**
-   * Check if auth is configured
+   * Check if auth is configured (for health checks)
    */
   status: publicProcedure.query(() => {
+    const status = getAuthStatus();
     return {
-      configured: isSimpleAuthConfigured(),
-      message: isSimpleAuthConfigured()
+      configured: status.configured,
+      message: status.configured
         ? "Authentication is configured"
-        : "Authentication not configured. Set ADMIN_PASSWORD_HASH environment variable.",
+        : "Authentication not configured. Set JWT_SECRET (32+ chars) and ADMIN_PASSWORD_HASH environment variables.",
     };
   }),
 
   /**
    * Generate password hash (for initial setup only)
-   * This should be called once to generate the hash, then disabled
+   * HARDENED: Disabled in production when already configured
    */
   generateHash: publicProcedure
     .input(z.object({

@@ -39,3 +39,10 @@
 - [x] Remove BUILT_IN_FORGE dependencies
 - [x] Test all features work without Manus
 - [x] Document portable self-hosting deployment
+
+## Phase 7: Production Hardening
+- [x] Remove default password fallback - require proper hash
+- [x] Add rate limiting to login endpoint
+- [x] Timing-safe password comparison
+- [x] Audit Just Talk for weak/brittle code
+- [x] Fix critical issues found in Just Talk (rate limiting, helmet, CORS, timeout)
