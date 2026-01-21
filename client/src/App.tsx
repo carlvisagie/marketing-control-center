@@ -12,6 +12,10 @@ import FeatureFlags from "./pages/FeatureFlags";
 import LiveMetrics from "./pages/LiveMetrics";
 import AIInsights from "./pages/AIInsights";
 import TikTok from "./pages/TikTok";
+import CampaignTracker from "./pages/CampaignTracker";
+import AdCopyGenerator from "./pages/AdCopyGenerator";
+import ContentCalendar from "./pages/ContentCalendar";
+import ABTestManager from "./pages/ABTestManager";
 
 function App() {
   return (
@@ -28,6 +32,10 @@ function App() {
             <Route path="/settings" component={Settings} />
             <Route path="/flags" component={FeatureFlags} />
             <Route path="/tiktok" component={TikTok} />
+            <Route path="/campaigns" component={CampaignTracker} />
+            <Route path="/ad-copy" component={AdCopyGenerator} />
+            <Route path="/calendar" component={ContentCalendar} />
+            <Route path="/ab-tests" component={ABTestManager} />
             <Route>
               <div className="flex items-center justify-center h-full">
                 <p className="text-slate-400">Page not found</p>

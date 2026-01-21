@@ -12,7 +12,11 @@ import {
   Flag,
   BarChart3,
   Brain,
-  Video
+  Video,
+  Target,
+  FileText,
+  Calendar,
+  FlaskConical
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,6 +28,10 @@ interface DashboardLayoutProps {
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/campaigns", label: "Campaign Tracker", icon: Target },
+  { path: "/ad-copy", label: "Ad Copy Generator", icon: FileText },
+  { path: "/calendar", label: "Content Calendar", icon: Calendar },
+  { path: "/ab-tests", label: "A/B Tests", icon: FlaskConical },
   { path: "/live", label: "Live Metrics", icon: BarChart3 },
   { path: "/ai", label: "AI Insights", icon: Brain },
   { path: "/command", label: "Command Center", icon: Terminal },

@@ -79,8 +79,8 @@
 - [ ] Test all integrations
 
 ## Phase 11: Custom Unified Social Posting Engine
-- [ ] Set up Meta Developer App (Facebook/Instagram)
-- [ ] Build Meta Graph API integration
+- [x] Set up Meta Developer App (Facebook/Instagram) - App ID: 1109120694576079
+- [x] Build Meta Graph API integration
 - [ ] Set up LinkedIn Developer App
 - [ ] Build LinkedIn API integration
 - [ ] Set up TikTok Developer App
@@ -89,3 +89,21 @@
 - [ ] Build analytics aggregator
 - [ ] Connect 24/7 Attack to autonomous posting
 - [ ] Test and deploy complete system
+
+## Phase 12: Sintra Marketing Strategy Integration
+- [x] Fix Settings page TypeScript errors
+- [x] Complete platform connection UI (Meta, LinkedIn OAuth)
+- [x] Build Campaign Tracker with KPI metrics:
+  - Landing page CVR (target ≥5%)
+  - Trial → paid rate (target ≥35%)
+  - Blended CAC (target ≤$45)
+  - D30 retention (target ≥55%)
+  - Annual attach rate (target ≥20%)
+- [x] Build Ad Copy Generator with Meta-safe templates
+- [x] Build A/B Test Manager for weekly testing
+- [x] Build 30-day Content Calendar with Sintra schedule
+- [x] Build 24/7 Attack automation engine
+- [x] Create OAuth callback routes for Meta and LinkedIn
+- [x] Update Dashboard with campaign overview
+- [x] Add navigation for all new pages
+- [ ] Test and push to GitHub

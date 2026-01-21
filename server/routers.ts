@@ -13,6 +13,7 @@ import { reportingRouter } from "./routers/reporting";
 import { autoOptimizeRouter } from "./routers/autoOptimize";
 import { tiktokRouter } from "./routers/tiktok";
 import { socialPlatformsRouter } from "./routers/socialPlatforms";
+import { attackRouter } from "./routers/attack";
 
 export const appRouter = router({
   // Simple JWT Authentication (no Manus OAuth)
@@ -38,6 +39,9 @@ export const appRouter = router({
 
   // Social Platform Connections & Unified Posting
   social: socialPlatformsRouter,
+
+  // 24/7 Attack Automation Engine
+  attack: attackRouter,
 });
 
 export type AppRouter = typeof appRouter;

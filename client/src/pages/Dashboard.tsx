@@ -6,6 +6,7 @@
  * NOTE: All metrics start at 0 - real data will come from the autonomous agents
  */
 import { useState, useEffect } from "react";
+import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -79,40 +80,57 @@ interface ContentItem {
 }
 
 export default function Dashboard() {
-  const [isAttackRunning, setIsAttackRunning] = useState(false);
   const [stats, setStats] = useState(initialStats);
   const [logs, setLogs] = useState(initialLogs);
   const [content, setContent] = useState<ContentItem[]>([]);
   const [selectedContent, setSelectedContent] = useState<number | null>(null);
 
+  // tRPC queries and mutations
+  const attackStatus = trpc.attack.getStatus.useQuery();
+  const toggleAttack = trpc.attack.toggleAttack.useMutation({
+    onSuccess: (data) => {
+      if (data.isActive) {
+        toast.success("🚀 24/7 Marketing Attack LAUNCHED!", {
+          description: "The agent is now autonomously posting to all platforms.",
+        });
+        setLogs((prev) => [
+          ...prev,
+          {
+            time: new Date().toLocaleTimeString("en-US", { hour12: false }),
+            type: "success",
+            message: "🔥 24/7 CONTINUOUS ATTACK STARTED!",
+          },
+        ]);
+      } else {
+        toast.info("⏸️ Attack Paused", {
+          description: "Marketing agent paused. Resume anytime.",
+        });
+        setLogs((prev) => [
+          ...prev,
+          {
+            time: new Date().toLocaleTimeString("en-US", { hour12: false }),
+            type: "info",
+            message: "⏸️ Attack paused by operator",
+          },
+        ]);
+      }
+      attackStatus.refetch();
+    },
+    onError: (error) => {
+      toast.error("Failed to toggle attack mode", {
+        description: error.message,
+      });
+    },
+  });
+
+  const isAttackRunning = attackStatus.data?.isActive ?? false;
+
   const handleStartAttack = () => {
-    setIsAttackRunning(true);
-    toast.success("🚀 24/7 Marketing Attack LAUNCHED!", {
-      description: "The agent is now autonomously posting to all platforms.",
-    });
-    setLogs((prev) => [
-      ...prev,
-      {
-        time: new Date().toLocaleTimeString("en-US", { hour12: false }),
-        type: "success",
-        message: "🔥 24/7 CONTINUOUS ATTACK STARTED!",
-      },
-    ]);
+    toggleAttack.mutate({ active: true });
   };
 
   const handlePauseAttack = () => {
-    setIsAttackRunning(false);
-    toast.info("⏸️ Attack Paused", {
-      description: "Marketing agent paused. Resume anytime.",
-    });
-    setLogs((prev) => [
-      ...prev,
-      {
-        time: new Date().toLocaleTimeString("en-US", { hour12: false }),
-        type: "info",
-        message: "⏸️ Attack paused by operator",
-      },
-    ]);
+    toggleAttack.mutate({ active: false });
   };
 
   const handleApproveContent = (id: number) => {
