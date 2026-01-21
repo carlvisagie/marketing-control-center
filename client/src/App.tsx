@@ -1,41 +1,37 @@
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Switch, Route } from "wouter";
+import { ThemeProvider } from "./components/ThemeProvider";
+import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
-
-
-function Router() {
-  return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
-
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
+import DashboardLayout from "./components/DashboardLayout";
+import Dashboard from "./pages/Dashboard";
+import CommandCenter from "./pages/CommandCenter";
+import ApprovalQueue from "./pages/ApprovalQueue";
+import ActivityLog from "./pages/ActivityLog";
+import Settings from "./pages/Settings";
+import FeatureFlags from "./pages/FeatureFlags";
 
 function App() {
   return (
-    <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
+    <ThemeProvider defaultTheme="dark">
+      <ErrorBoundary>
+        <DashboardLayout>
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/command" component={CommandCenter} />
+            <Route path="/approvals" component={ApprovalQueue} />
+            <Route path="/activity" component={ActivityLog} />
+            <Route path="/settings" component={Settings} />
+            <Route path="/flags" component={FeatureFlags} />
+            <Route>
+              <div className="flex items-center justify-center h-full">
+                <p className="text-slate-400">Page not found</p>
+              </div>
+            </Route>
+          </Switch>
+        </DashboardLayout>
+        <Toaster />
+      </ErrorBoundary>
+    </ThemeProvider>
   );
 }
 
