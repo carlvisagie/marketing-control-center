@@ -3,6 +3,9 @@
  * 
  * Review and approve/reject AI-generated content and changes.
  * Nothing risky goes live without your approval.
+ * 
+ * NOTE: This page will show real items when the autonomous marketing
+ * agents are active and generating content for approval.
  */
 
 import { useState } from "react";
@@ -11,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   CheckCircle2,
-  XCircle,
   Clock,
   FileText,
   Code,
@@ -20,6 +22,7 @@ import {
   Eye,
   ThumbsUp,
   ThumbsDown,
+  Inbox,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,42 +37,9 @@ interface ApprovalItem {
   source: string;
 }
 
-// Mock approval items
-const mockItems: ApprovalItem[] = [
-  {
-    id: "1",
-    type: "content",
-    title: "Marketing Post: Sleep Tips",
-    description: "Generated marketing post about improving sleep quality",
-    preview: "🌙 Struggling to sleep? Here are 5 science-backed tips to improve your sleep tonight:\n\n1. Keep your room cool (65-68°F)\n2. No screens 1 hour before bed\n3. Stick to a consistent schedule\n4. Try the 4-7-8 breathing technique\n5. Limit caffeine after 2pm\n\nYour body will thank you! 💤\n\n#SleepBetter #WellnessCoaching",
-    risk: "low",
-    createdAt: new Date(Date.now() - 1800000),
-    source: "Marketing Worker",
-  },
-  {
-    id: "2",
-    type: "code",
-    title: "Fix: OpenAI Model Update",
-    description: "Update AI model from gpt-4 to gpt-4-turbo for faster responses",
-    preview: "// server/coachAssistant.ts\n- model: 'gpt-4'\n+ model: 'gpt-4-turbo'",
-    risk: "medium",
-    createdAt: new Date(Date.now() - 3600000),
-    source: "AI Worker",
-  },
-  {
-    id: "3",
-    type: "config",
-    title: "Database Migration: Add Column",
-    description: "Add 'last_session_summary' column to client_profile table",
-    preview: "ALTER TABLE client_profile ADD COLUMN last_session_summary TEXT;",
-    risk: "high",
-    createdAt: new Date(Date.now() - 7200000),
-    source: "AI Worker",
-  },
-];
-
 export default function ApprovalQueue() {
-  const [items, setItems] = useState<ApprovalItem[]>(mockItems);
+  // Start with empty array - real items will come from the autonomous agents
+  const [items, setItems] = useState<ApprovalItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<ApprovalItem | null>(null);
 
   const approveItem = (id: string) => {
@@ -180,12 +150,15 @@ export default function ApprovalQueue() {
         </Card>
       )}
 
-      {/* Approval Items */}
+      {/* Empty State or Approval Items */}
       {items.length === 0 ? (
         <Card className="p-12 bg-card border-border text-center">
-          <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-foreground mb-2">All Clear!</h3>
-          <p className="text-muted-foreground">No items waiting for approval.</p>
+          <Inbox className="w-16 h-16 text-slate-500 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-foreground mb-2">No Pending Approvals</h3>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            When the autonomous marketing agents generate content or propose changes, 
+            they'll appear here for your review before going live.
+          </p>
         </Card>
       ) : (
         <div className="space-y-4">

@@ -27,7 +27,7 @@ const navItems = [
   { path: "/live", label: "Live Metrics", icon: BarChart3 },
   { path: "/ai", label: "AI Insights", icon: Brain },
   { path: "/command", label: "Command Center", icon: Terminal },
-  { path: "/approvals", label: "Approvals", icon: CheckSquare, badge: 2 },
+  { path: "/approvals", label: "Approvals", icon: CheckSquare },
   { path: "/activity", label: "Activity Log", icon: Activity },
   { path: "/flags", label: "Feature Flags", icon: Flag },
   { path: "/tiktok", label: "TikTok", icon: Video },
@@ -108,11 +108,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 >
                   <Icon className="h-4 w-4" />
                   <span className="flex-1">{item.label}</span>
-                  {item.badge && (
-                    <Badge variant="destructive" className="h-5 min-w-5 flex items-center justify-center text-xs">
-                      {item.badge}
-                    </Badge>
-                  )}
+
                 </div>
               </Link>
             );

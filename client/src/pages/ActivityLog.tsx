@@ -2,6 +2,9 @@
  * Activity Log Page
  * 
  * See everything the AI has been doing across all your projects.
+ * 
+ * NOTE: This page will show real activity when the autonomous marketing
+ * agents are active and logging their actions.
  */
 
 import { useState } from "react";
@@ -23,6 +26,7 @@ import {
   Database,
   Globe,
   Phone,
+  Inbox,
 } from "lucide-react";
 
 interface LogEntry {
@@ -35,84 +39,9 @@ interface LogEntry {
   source: string;
 }
 
-// Mock log entries
-const mockLogs: LogEntry[] = [
-  {
-    id: "1",
-    timestamp: new Date(Date.now() - 60000),
-    type: "success",
-    category: "phone",
-    message: "Incoming call handled successfully",
-    details: "Duration: 4m 32s | Caller: +49152... | Topic: Sleep coaching",
-    source: "Just Talk",
-  },
-  {
-    id: "2",
-    timestamp: new Date(Date.now() - 120000),
-    type: "success",
-    category: "ai",
-    message: "AI response generated",
-    details: "Model: gpt-4o-mini | Tokens: 847 | Latency: 1.2s",
-    source: "Just Talk",
-  },
-  {
-    id: "3",
-    timestamp: new Date(Date.now() - 300000),
-    type: "warning",
-    category: "database",
-    message: "Slow query detected",
-    details: "Query took 2.3s | Table: client_profile | Action: SELECT",
-    source: "Just Talk",
-  },
-  {
-    id: "4",
-    timestamp: new Date(Date.now() - 600000),
-    type: "success",
-    category: "marketing",
-    message: "Marketing post published",
-    details: "Platform: LinkedIn | Topic: Stress management",
-    source: "Marketing Worker",
-  },
-  {
-    id: "5",
-    timestamp: new Date(Date.now() - 900000),
-    type: "error",
-    category: "api",
-    message: "API rate limit reached",
-    details: "OpenAI API | Retry in: 60s",
-    source: "Just Talk",
-  },
-  {
-    id: "6",
-    timestamp: new Date(Date.now() - 1200000),
-    type: "info",
-    category: "database",
-    message: "Database backup completed",
-    details: "Size: 45MB | Duration: 12s",
-    source: "System",
-  },
-  {
-    id: "7",
-    timestamp: new Date(Date.now() - 1800000),
-    type: "success",
-    category: "phone",
-    message: "New client onboarded",
-    details: "Phone: +49152... | Source: Website chat",
-    source: "Just Talk",
-  },
-  {
-    id: "8",
-    timestamp: new Date(Date.now() - 2400000),
-    type: "success",
-    category: "ai",
-    message: "Crisis detection triggered",
-    details: "Severity: Medium | Action: Escalated to resources",
-    source: "Just Talk",
-  },
-];
-
 export default function ActivityLog() {
-  const [logs, setLogs] = useState<LogEntry[]>(mockLogs);
+  // Start with empty array - real logs will come from the system
+  const [logs, setLogs] = useState<LogEntry[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -247,10 +176,19 @@ export default function ActivityLog() {
         </div>
       </div>
 
-      {/* Log Entries */}
+      {/* Log Entries or Empty State */}
       <Card className="bg-card border-border overflow-hidden">
         <div className="divide-y divide-border">
-          {filteredLogs.length === 0 ? (
+          {logs.length === 0 ? (
+            <div className="p-12 text-center">
+              <Inbox className="w-16 h-16 text-slate-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">No Activity Yet</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                When the autonomous marketing agents start working, their activity 
+                will be logged here in real-time.
+              </p>
+            </div>
+          ) : filteredLogs.length === 0 ? (
             <div className="p-8 text-center">
               <Activity className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
               <p className="text-muted-foreground">No logs match your filters</p>
