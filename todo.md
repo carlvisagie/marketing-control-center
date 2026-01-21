@@ -1,0 +1,31 @@
+# Marketing Control Center TODO
+
+## Phase 1: Real Data Connection (READ-ONLY from Just Talk)
+- [x] Upgrade to full-stack with database access
+- [x] Create read-only connection to Just Talk database
+- [x] Build API routes for fetching metrics (calls, chats, payments, clients)
+- [x] Create real-time dashboard with live data
+
+## Phase 2: AI-Powered Recommendations
+- [x] Implement content performance analysis using LLM
+- [x] Build recommendation engine for content optimization
+- [x] Add "why this recommendation" explanations
+
+## Phase 3: Autonomous A/B Testing
+- [x] Create A/B test management system
+- [x] Build auto-optimization logic based on conversion data
+- [x] Implement statistical significance calculation## Phase 4: Self-Reporting System
+- [x] Daily summary notifications via Twilio
+- [x] Weekly performance reports
+- [x] Anomaly detection alerts
+
+#### Phase 5: Auto-Pause/Boost Logic
+- [x] Define performance thresholds
+- [x] Implement auto-pause for underperforming content
+- [x] Implement auto-boost for high performers
+- [x] Add manual override capability intervention
+
+## CRITICAL CONSTRAINTS
+- READ-ONLY access to Just Talk database - NO WRITES
+- Just Talk must never be affected by Marketing Control Center
+- Separate deployment - independent operation

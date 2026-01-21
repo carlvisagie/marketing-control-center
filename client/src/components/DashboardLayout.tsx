@@ -9,7 +9,9 @@ import {
   Menu,
   X,
   Bell,
-  Flag
+  Flag,
+  BarChart3,
+  Brain
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,6 +23,8 @@ interface DashboardLayoutProps {
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/live", label: "Live Metrics", icon: BarChart3 },
+  { path: "/ai", label: "AI Insights", icon: Brain },
   { path: "/command", label: "Command Center", icon: Terminal },
   { path: "/approvals", label: "Approvals", icon: CheckSquare, badge: 2 },
   { path: "/activity", label: "Activity Log", icon: Activity },

@@ -9,6 +9,8 @@ import ApprovalQueue from "./pages/ApprovalQueue";
 import ActivityLog from "./pages/ActivityLog";
 import Settings from "./pages/Settings";
 import FeatureFlags from "./pages/FeatureFlags";
+import LiveMetrics from "./pages/LiveMetrics";
+import AIInsights from "./pages/AIInsights";
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
         <DashboardLayout>
           <Switch>
             <Route path="/" component={Dashboard} />
+            <Route path="/live" component={LiveMetrics} />
+            <Route path="/ai" component={AIInsights} />
             <Route path="/command" component={CommandCenter} />
             <Route path="/approvals" component={ApprovalQueue} />
             <Route path="/activity" component={ActivityLog} />
