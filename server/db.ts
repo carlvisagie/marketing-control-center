@@ -1,7 +1,8 @@
 /**
- * Database Module - PostgreSQL Connection to Just Talk Database
+ * Database Module - PostgreSQL Connection
  * 
- * Connects to the Just Talk PostgreSQL database for unified data access.
+ * ZERO MANUS DEPENDENCIES - Connects to YOUR PostgreSQL database on Render.
+ * Uses the existing Just Talk database schema.
  */
 
 import { eq } from "drizzle-orm";
@@ -11,11 +12,10 @@ import { InsertUser, users } from "../drizzle/schema";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _client: ReturnType<typeof postgres> | null = null;
-let _ownerEnsured = false;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
-  // Use JUST_TALK_DATABASE_URL first, fall back to DATABASE_URL
+  // Use JUST_TALK_DATABASE_URL - YOUR PostgreSQL database on Render
   const connectionString = process.env.JUST_TALK_DATABASE_URL || process.env.DATABASE_URL;
   
   if (!_db && connectionString) {
@@ -28,12 +28,6 @@ export async function getDb() {
       });
       _db = drizzle(_client);
       console.log("[Database] Connected to PostgreSQL");
-      
-      // Auto-create owner user on first connection
-      if (!_ownerEnsured) {
-        await ensureOwnerUser(_db);
-        _ownerEnsured = true;
-      }
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -43,52 +37,23 @@ export async function getDb() {
 }
 
 /**
- * Ensure the owner user exists in the database.
- * This is called automatically on first database connection.
- */
-async function ensureOwnerUser(db: ReturnType<typeof drizzle>) {
-  try {
-    // Check if owner exists
-    const existing = await db.select().from(users).where(eq(users.openId, "owner")).limit(1);
-    
-    if (existing.length === 0) {
-      // Create owner user
-      await db.insert(users).values({
-        openId: "owner",
-        name: "Carl Visagie",
-        email: "coachingpurposefulliving@gmail.com",
-        role: "admin",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastSignedIn: new Date(),
-      });
-      console.log("[Database] Created owner user");
-    } else {
-      console.log("[Database] Owner user exists");
-    }
-  } catch (error) {
-    console.error("[Database] Failed to ensure owner user:", error);
-    // Don't throw - let the app continue even if this fails
-  }
-}
-
-/**
- * Get the owner user ID. Creates owner if doesn't exist.
+ * Get the owner user ID (Carl Visagie - ID 1 in Just Talk database).
  */
 export async function getOwnerId(): Promise<number | null> {
   const db = await getDb();
   if (!db) return null;
   
   try {
-    const owner = await db.select().from(users).where(eq(users.openId, "owner")).limit(1);
+    // Carl's user ID in Just Talk is 1 (coach_carl_1765988940043)
+    const owner = await db.select().from(users).where(eq(users.id, 1)).limit(1);
     if (owner.length > 0) {
       return owner[0].id;
     }
     
-    // Fallback: get any user
-    const anyUser = await db.select().from(users).limit(1);
-    if (anyUser.length > 0) {
-      return anyUser[0].id;
+    // Fallback: get any coach user
+    const anyCoach = await db.select().from(users).where(eq(users.role, "coach")).limit(1);
+    if (anyCoach.length > 0) {
+      return anyCoach[0].id;
     }
     
     return null;
@@ -156,5 +121,3 @@ export async function getUserByOpenId(openId: string) {
 
   return result.length > 0 ? result[0] : undefined;
 }
-
-// TODO: add feature queries here as your schema grows.

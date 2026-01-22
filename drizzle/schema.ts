@@ -1,41 +1,46 @@
-import { integer, pgEnum, pgTable, text, timestamp, varchar, serial, boolean, json } from "drizzle-orm/pg-core";
+import { integer, pgEnum, pgTable, text, timestamp, varchar, serial, boolean, json, date } from "drizzle-orm/pg-core";
 
 /**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
+ * Schema matching the existing Just Talk PostgreSQL database.
+ * ZERO MANUS DEPENDENCIES - Uses YOUR PostgreSQL database on Render.
  */
-// Role enum for PostgreSQL
-export const roleEnum = pgEnum("role", ["user", "admin"]);
 
-// Platform enum for social media connections
+// Platform enum - must match existing enum in database
 export const platformEnum = pgEnum("platform", ["facebook", "instagram", "linkedin", "tiktok"]);
 
 // Post status enum
 export const postStatusEnum = pgEnum("post_status", ["pending", "scheduled", "posted", "failed", "cancelled"]);
 
+/**
+ * Users table - matches existing Just Talk schema (snake_case columns)
+ */
 export const users = pgTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: serial("id").primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
-  openId: varchar("openId", { length: 64 }).notNull().unique(),
+  openId: varchar("open_id", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
-  loginMethod: varchar("loginMethod", { length: 64 }),
-  role: roleEnum("role").default("user").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
+  loginMethod: varchar("login_method", { length: 64 }),
+  birthdate: date("birthdate"),
+  role: varchar("role", { length: 50 }),
+  primaryGoal: text("primary_goal"),
+  secondaryGoal: text("secondary_goal"),
+  mainChallenges: text("main_challenges"),
+  preferredFrequency: varchar("preferred_frequency", { length: 50 }),
+  timezone: varchar("timezone", { length: 64 }),
+  availability: text("availability"),
+  communicationStyle: varchar("communication_style", { length: 50 }),
+  triggers: text("triggers"),
+  profileCompleteness: integer("profile_completeness").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  lastSignedIn: timestamp("last_signed_in").defaultNow(),
 });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 /**
- * Platform connections - stores OAuth tokens for social media platforms
+ * Platform connections - matches existing Just Talk schema (camelCase columns)
  */
 export const platformConnections = pgTable("platform_connections", {
   id: serial("id").primaryKey(),
@@ -90,7 +95,20 @@ export type PostResult = typeof postResults.$inferSelect;
 export type InsertPostResult = typeof postResults.$inferInsert;
 
 /**
- * Activity log - tracks all actions in the system
+ * System settings - stores configuration like 24/7 attack status
+ */
+export const systemSettings = pgTable("system_settings", {
+  id: serial("id").primaryKey(),
+  key: varchar("key", { length: 100 }).notNull().unique(),
+  value: text("value"),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type InsertSystemSetting = typeof systemSettings.$inferInsert;
+
+/**
+ * Activity log - tracks all actions in the system (matches existing Just Talk schema)
  */
 export const activityLog = pgTable("activity_log", {
   id: serial("id").primaryKey(),
@@ -103,16 +121,3 @@ export const activityLog = pgTable("activity_log", {
 
 export type ActivityLogEntry = typeof activityLog.$inferSelect;
 export type InsertActivityLogEntry = typeof activityLog.$inferInsert;
-
-/**
- * System settings - stores configuration like 24/7 attack status
- */
-export const systemSettings = pgTable("system_settings", {
-  id: serial("id").primaryKey(),
-  key: varchar("key", { length: 100 }).notNull().unique(),
-  value: text("value"),
-  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-});
-
-export type SystemSetting = typeof systemSettings.$inferSelect;
-export type InsertSystemSetting = typeof systemSettings.$inferInsert;

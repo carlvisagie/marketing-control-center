@@ -1,0 +1,21 @@
+{
+  "query": "SELECT * FROM users WHERE openId = 'owner';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3ygUAfurMsr4XGZ.ddaefdb67f03 --database gdDmes95F5P37rpdCoQAru --execute SELECT * FROM users WHERE openId = 'owner';",
+  "rows": [
+    {
+      "id": "1",
+      "openId": "owner",
+      "name": "Carl Visagie",
+      "email": "coachingpurposefulliving@gmail.com",
+      "loginMethod": "NULL",
+      "role": "admin",
+      "createdAt": "2026-01-22 06:09:11",
+      "updatedAt": "2026-01-22 06:09:11",
+      "lastSignedIn": "2026-01-22 06:09:11"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\tname\temail\tloginMethod\trole\tcreatedAt\tupdatedAt\tlastSignedIn\n1\towner\tCarl Visagie\tcoachingpurposefulliving@gmail.com\tNULL\tadmin\t2026-01-22 06:09:11\t2026-01-22 06:09:11\t2026-01-22 06:09:11\n",
+  "stderr": "",
+  "execution_time_ms": 371
+}
