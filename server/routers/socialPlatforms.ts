@@ -35,30 +35,44 @@ async function getOwnerId(): Promise<number> {
     });
   }
 
-  // Check if owner exists
-  const existingOwner = await db
-    .select()
-    .from(users)
-    .where(eq(users.openId, "owner"))
-    .limit(1);
+  try {
+    // Check if owner exists
+    const existingOwner = await db
+      .select()
+      .from(users)
+      .where(eq(users.openId, "owner"))
+      .limit(1);
 
-  if (existingOwner.length > 0) {
-    cachedOwnerId = existingOwner[0].id;
+    if (existingOwner.length > 0) {
+      cachedOwnerId = existingOwner[0].id;
+      return cachedOwnerId;
+    }
+
+    // Create owner user
+    const result = await db.insert(users).values({
+      openId: "owner",
+      name: "Owner",
+      role: "admin",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+    }).returning({ id: users.id });
+
+    cachedOwnerId = result[0].id;
     return cachedOwnerId;
+  } catch (error) {
+    console.error("Error getting/creating owner:", error);
+    // Try to get any existing user as fallback
+    const anyUser = await db.select().from(users).limit(1);
+    if (anyUser.length > 0) {
+      cachedOwnerId = anyUser[0].id;
+      return cachedOwnerId;
+    }
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to get or create owner user",
+    });
   }
-
-  // Create owner user
-  const result = await db.insert(users).values({
-    openId: "owner",
-    name: "Owner",
-    role: "admin",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    lastSignedIn: new Date(),
-  }).returning({ id: users.id });
-
-  cachedOwnerId = result[0].id;
-  return cachedOwnerId;
 }
 
 export const socialPlatformsRouter = router({
