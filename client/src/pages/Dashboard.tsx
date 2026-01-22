@@ -44,6 +44,44 @@ import {
   Inbox,
 } from "lucide-react";
 
+// Sintra Strategy: Execution Phases
+const EXECUTION_PHASES = {
+  day0: {
+    name: "Day 0: Launch",
+    tasks: [
+      "Add Annual Plan + 7-day $7 trial to checkout",
+      "Update landing hero + disclaimer + FAQ",
+      "Install tracking: Meta Pixel + CAPI, TikTok Pixel, GA events",
+    ],
+    events: ["ViewContent", "StartTrial", "SubscribeMonthly", "SubscribeAnnual", "CallTap"],
+  },
+  days1to7: {
+    name: "Days 1-7: Proof Week",
+    tasks: [
+      "Publish daily TikTok + IG Reels (same cut, platform-native captions)",
+      "Run Meta Campaign A (cold) + B (retarget)",
+      "Collect 10 UGC videos from creators (pay small flat fee; secure usage rights)",
+    ],
+  },
+  days8to30: {
+    name: "Days 8-30: Scale Week",
+    tasks: [
+      "Kill losers fast: anything under target CTR/CVR after spend threshold",
+      "Expand to lookalikes",
+      "Launch LinkedIn outbound for B2B pilot",
+    ],
+  },
+};
+
+// KPI Targets from Sintra Strategy
+const KPI_TARGETS = {
+  landingCVR: { target: 5, label: "Landing CVR", unit: "%" },
+  trialToPaid: { target: 35, label: "Trial → Paid", unit: "%" },
+  blendedCAC: { target: 45, label: "Blended CAC", unit: "$", inverse: true },
+  d30Retention: { target: 55, label: "D30 Retention", unit: "%" },
+  annualAttach: { target: 20, label: "Annual Attach", unit: "%" },
+};
+
 // Real stats - start at 0, will be populated by actual data
 const initialStats = {
   postsToday: 0,

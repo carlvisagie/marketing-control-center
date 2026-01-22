@@ -123,6 +123,42 @@ const SAMPLE_TESTS: ABTest[] = [
   },
 ];
 
+// Sintra Strategy: 4 Weekly A/B Tests (one per week)
+const SINTRA_WEEKLY_TESTS = [
+  {
+    week: 1,
+    name: "CTA Wording Test",
+    variantA: "Start Now",
+    variantB: "Talk Now",
+    metric: "Click-through rate",
+    hypothesis: "'Talk Now' is more specific to the service and may increase CTR",
+  },
+  {
+    week: 2,
+    name: "Trial Pricing Test",
+    variantA: "7-day $7 trial",
+    variantB: "3-day $3 trial",
+    metric: "Trial conversion rate",
+    hypothesis: "Lower barrier may increase trial starts, but 7-day gives more time to convert",
+  },
+  {
+    week: 3,
+    name: "Hero Headline Test",
+    variantA: "It's 3 AM. Who can you call?",
+    variantB: "No schedule. No waiting.",
+    metric: "Landing page CVR",
+    hypothesis: "Emotional '3 AM' hook vs practical 'convenience' angle",
+  },
+  {
+    week: 4,
+    name: "Trust Row Order Test",
+    variantA: "Privacy first (Private → Available → Cancel → No schedule)",
+    variantB: "Availability first (Available → Private → No schedule → Cancel)",
+    metric: "Scroll depth & CVR",
+    hypothesis: "Leading with privacy may build trust faster",
+  },
+];
+
 // Test ideas from Sintra strategy
 const TEST_IDEAS = [
   {

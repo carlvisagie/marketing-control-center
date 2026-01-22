@@ -36,6 +36,50 @@ interface AdTemplate {
   complianceNotes: string[];
 }
 
+// Production-ready video scripts from Sintra strategy
+interface VideoScript {
+  id: string;
+  name: string;
+  duration: string;
+  type: "video" | "static" | "retarget";
+  onScreen: string[];
+  voiceover: string;
+  cta: string;
+}
+
+const VIDEO_SCRIPTS: VideoScript[] = [
+  {
+    id: "15s-late-night",
+    name: "Late Night (15s)",
+    duration: "15 seconds",
+    type: "video",
+    onScreen: [
+      "It's late. You don't want to wake anyone.",
+      "Tap. Talk. Feel lighter."
+    ],
+    voiceover: "Just Talk is a private, supportive conversation line—available 24/7.",
+    cta: "Try 7 days for $7."
+  },
+  {
+    id: "static-anytime",
+    name: "Static: Anytime Support",
+    duration: "Static image",
+    type: "static",
+    onScreen: ["A supportive conversation, anytime."],
+    voiceover: "No scheduling. Private by design. Cancel anytime.",
+    cta: "Start now"
+  },
+  {
+    id: "retarget-simple",
+    name: "Retarget: Simple Pricing",
+    duration: "Static image",
+    type: "retarget",
+    onScreen: ["Keep it simple: $29/month, anytime access."],
+    voiceover: "Unlimited supportive chats + fast start.",
+    cta: "Subscribe"
+  }
+];
+
 const AD_TEMPLATES: AdTemplate[] = [
   {
     id: "3am-problem",
