@@ -401,7 +401,7 @@ export default function SocialAccounts() {
                               variant="ghost"
                               size="sm"
                               className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                              onClick={() => handleDisconnect(platform.id, account.pageId)}
+                              onClick={() => handleDisconnect(platform.id, account.pageId ?? undefined)}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>

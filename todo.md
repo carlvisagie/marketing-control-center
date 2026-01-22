@@ -119,5 +119,5 @@
 - [ ] Pinterest - Multiple boards
 - [ ] Threads - Multiple accounts (via Instagram)
 - [x] Update Settings UI to show all connected accounts with add/remove
-- [ ] Update posting engine to broadcast to all selected accounts
-- [ ] Add platform-specific API integrations
+- [x] Update posting engine to broadcast to all selected accounts
+- [x] Add platform-specific API integrations (Meta, LinkedIn, Twitter built)

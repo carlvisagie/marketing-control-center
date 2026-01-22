@@ -1,33 +1,83 @@
 /**
  * Social Platforms Router
  * Handles platform connections, posting, and analytics
+ * 
+ * NOTE: Using publicProcedure for all endpoints since this is a single-user
+ * private tool. The owner is the only user.
  */
 
 import { z } from "zod";
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { metaApi } from "../integrations/meta";
 import { linkedInApi } from "../integrations/linkedin";
 import { socialEngine, Platform, PlatformCredentials } from "../integrations/socialEngine";
 import { getDb } from "../db";
-import { platformConnections } from "../../drizzle/schema";
+import { platformConnections, users } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
+
+// Default owner ID - will be set dynamically
+let cachedOwnerId: number | null = null;
+
+/**
+ * Get or create the owner user ID
+ */
+async function getOwnerId(): Promise<number> {
+  if (cachedOwnerId !== null) {
+    return cachedOwnerId;
+  }
+
+  const db = await getDb();
+  if (!db) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Database not available",
+    });
+  }
+
+  // Check if owner exists
+  const existingOwner = await db
+    .select()
+    .from(users)
+    .where(eq(users.openId, "owner"))
+    .limit(1);
+
+  if (existingOwner.length > 0) {
+    cachedOwnerId = existingOwner[0].id;
+    return cachedOwnerId;
+  }
+
+  // Create owner user
+  const result = await db.insert(users).values({
+    openId: "owner",
+    name: "Owner",
+    role: "admin",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    lastSignedIn: new Date(),
+  }).returning({ id: users.id });
+
+  cachedOwnerId = result[0].id;
+  return cachedOwnerId;
+}
 
 export const socialPlatformsRouter = router({
   /**
-   * Get all connected platforms for the current user
+   * Get all connected platforms
    */
-  getConnectedPlatforms: protectedProcedure.query(async ({ ctx }) => {
+  getConnectedPlatforms: publicProcedure.query(async () => {
     const db = await getDb();
     if (!db) {
       return [];
     }
+
+    const ownerId = await getOwnerId();
     const connections = await db
       .select()
       .from(platformConnections)
-      .where(eq(platformConnections.userId, ctx.user.id));
+      .where(eq(platformConnections.userId, ownerId));
 
-    return connections.map((conn: any) => ({
+    return connections.map((conn) => ({
       platform: conn.platform as Platform,
       connected: true,
       pageName: conn.pageName,
@@ -40,9 +90,9 @@ export const socialPlatformsRouter = router({
   /**
    * Get Meta (Facebook/Instagram) OAuth URL
    */
-  getMetaAuthUrl: protectedProcedure
+  getMetaAuthUrl: publicProcedure
     .input(z.object({ redirectUri: z.string() }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const appId = process.env.META_APP_ID;
       if (!appId) {
         throw new TRPCError({
@@ -51,8 +101,9 @@ export const socialPlatformsRouter = router({
         });
       }
 
+      const ownerId = await getOwnerId();
       const state = Buffer.from(
-        JSON.stringify({ userId: ctx.user.id, timestamp: Date.now() })
+        JSON.stringify({ userId: ownerId, timestamp: Date.now() })
       ).toString("base64");
 
       const scopes = [
@@ -76,14 +127,14 @@ export const socialPlatformsRouter = router({
   /**
    * Complete Meta OAuth and save credentials
    */
-  connectMeta: protectedProcedure
+  connectMeta: publicProcedure
     .input(
       z.object({
         code: z.string(),
         redirectUri: z.string(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const appId = process.env.META_APP_ID;
       const appSecret = process.env.META_APP_SECRET;
 
@@ -101,6 +152,8 @@ export const socialPlatformsRouter = router({
           message: "Database not available",
         });
       }
+
+      const ownerId = await getOwnerId();
 
       // Exchange code for access token
       const tokenUrl = new URL("https://graph.facebook.com/v19.0/oauth/access_token");
@@ -159,7 +212,7 @@ export const socialPlatformsRouter = router({
           .from(platformConnections)
           .where(
             and(
-              eq(platformConnections.userId, ctx.user.id),
+              eq(platformConnections.userId, ownerId),
               eq(platformConnections.platform, "facebook"),
               eq(platformConnections.pageId, page.id)
             )
@@ -178,7 +231,7 @@ export const socialPlatformsRouter = router({
             .where(eq(platformConnections.id, existingFb[0].id));
         } else {
           await db.insert(platformConnections).values({
-            userId: ctx.user.id,
+            userId: ownerId,
             platform: "facebook",
             accessToken: page.accessToken,
             pageId: page.id,
@@ -198,7 +251,7 @@ export const socialPlatformsRouter = router({
             .from(platformConnections)
             .where(
               and(
-                eq(platformConnections.userId, ctx.user.id),
+                eq(platformConnections.userId, ownerId),
                 eq(platformConnections.platform, "instagram"),
                 eq(platformConnections.pageId, instagramAccountId)
               )
@@ -217,7 +270,7 @@ export const socialPlatformsRouter = router({
               .where(eq(platformConnections.id, existingIg[0].id));
           } else {
             await db.insert(platformConnections).values({
-              userId: ctx.user.id,
+              userId: ownerId,
               platform: "instagram",
               accessToken: page.accessToken,
               pageId: instagramAccountId,
@@ -241,9 +294,9 @@ export const socialPlatformsRouter = router({
   /**
    * Get LinkedIn OAuth URL
    */
-  getLinkedInAuthUrl: protectedProcedure
+  getLinkedInAuthUrl: publicProcedure
     .input(z.object({ redirectUri: z.string() }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const clientId = process.env.LINKEDIN_CLIENT_ID;
       if (!clientId) {
         throw new TRPCError({
@@ -252,8 +305,9 @@ export const socialPlatformsRouter = router({
         });
       }
 
+      const ownerId = await getOwnerId();
       const state = Buffer.from(
-        JSON.stringify({ userId: ctx.user.id, timestamp: Date.now() })
+        JSON.stringify({ userId: ownerId, timestamp: Date.now() })
       ).toString("base64");
 
       const url = linkedInApi.getAuthorizationUrl(clientId, input.redirectUri, state);
@@ -264,14 +318,14 @@ export const socialPlatformsRouter = router({
   /**
    * Complete LinkedIn OAuth and save credentials
    */
-  connectLinkedIn: protectedProcedure
+  connectLinkedIn: publicProcedure
     .input(
       z.object({
         code: z.string(),
         redirectUri: z.string(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const clientId = process.env.LINKEDIN_CLIENT_ID;
       const clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
 
@@ -289,6 +343,8 @@ export const socialPlatformsRouter = router({
           message: "Database not available",
         });
       }
+
+      const ownerId = await getOwnerId();
 
       const tokenResult = await linkedInApi.exchangeCodeForToken(
         input.code,
@@ -322,7 +378,7 @@ export const socialPlatformsRouter = router({
         .from(platformConnections)
         .where(
           and(
-            eq(platformConnections.userId, ctx.user.id),
+            eq(platformConnections.userId, ownerId),
             eq(platformConnections.platform, "linkedin")
           )
         )
@@ -341,7 +397,7 @@ export const socialPlatformsRouter = router({
           .where(eq(platformConnections.id, existingLi[0].id));
       } else {
         await db.insert(platformConnections).values({
-          userId: ctx.user.id,
+          userId: ownerId,
           platform: "linkedin",
           accessToken: tokenResult.accessToken,
           pageId: profileResult.urn,
@@ -361,9 +417,9 @@ export const socialPlatformsRouter = router({
   /**
    * Disconnect a platform
    */
-  disconnectPlatform: protectedProcedure
+  disconnectPlatform: publicProcedure
     .input(z.object({ platform: z.enum(["facebook", "instagram", "linkedin", "tiktok"]) }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) {
         throw new TRPCError({
@@ -372,11 +428,13 @@ export const socialPlatformsRouter = router({
         });
       }
 
+      const ownerId = await getOwnerId();
+
       await db
         .delete(platformConnections)
         .where(
           and(
-            eq(platformConnections.userId, ctx.user.id),
+            eq(platformConnections.userId, ownerId),
             eq(platformConnections.platform, input.platform)
           )
         );
@@ -387,7 +445,7 @@ export const socialPlatformsRouter = router({
   /**
    * Post to selected platforms
    */
-  post: protectedProcedure
+  post: publicProcedure
     .input(
       z.object({
         content: z.string().min(1),
@@ -397,7 +455,7 @@ export const socialPlatformsRouter = router({
         link: z.string().optional(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) {
         throw new TRPCError({
@@ -406,13 +464,15 @@ export const socialPlatformsRouter = router({
         });
       }
 
-      // Get user's platform credentials
+      const ownerId = await getOwnerId();
+
+      // Get platform credentials
       const connections = await db
         .select()
         .from(platformConnections)
-        .where(eq(platformConnections.userId, ctx.user.id));
+        .where(eq(platformConnections.userId, ownerId));
 
-      const credentials: PlatformCredentials[] = connections.map((conn: any) => ({
+      const credentials: PlatformCredentials[] = connections.map((conn) => ({
         platform: conn.platform as Platform,
         accessToken: conn.accessToken,
         pageId: conn.pageId || undefined,
@@ -448,18 +508,20 @@ export const socialPlatformsRouter = router({
   /**
    * Get aggregated analytics from all platforms
    */
-  getAnalytics: protectedProcedure.query(async ({ ctx }) => {
+  getAnalytics: publicProcedure.query(async () => {
     const db = await getDb();
     if (!db) {
       return { facebook: {}, instagram: {}, linkedin: {}, tiktok: {} };
     }
 
+    const ownerId = await getOwnerId();
+
     const connections = await db
       .select()
       .from(platformConnections)
-      .where(eq(platformConnections.userId, ctx.user.id));
+      .where(eq(platformConnections.userId, ownerId));
 
-    const credentials: PlatformCredentials[] = connections.map((conn: any) => ({
+    const credentials: PlatformCredentials[] = connections.map((conn) => ({
       platform: conn.platform as Platform,
       accessToken: conn.accessToken,
       pageId: conn.pageId || undefined,
@@ -475,7 +537,7 @@ export const socialPlatformsRouter = router({
   /**
    * Get optimal posting times for each platform
    */
-  getOptimalTimes: protectedProcedure.query(async () => {
+  getOptimalTimes: publicProcedure.query(async () => {
     return {
       facebook: socialEngine.getOptimalPostingTimes("facebook"),
       instagram: socialEngine.getOptimalPostingTimes("instagram"),

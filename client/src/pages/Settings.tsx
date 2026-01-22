@@ -81,7 +81,7 @@ export default function Settings() {
       name: "Facebook",
       icon: <Facebook className="w-5 h-5" />,
       status: platformsData?.find(p => p.platform === "facebook")?.connected ? "connected" : "disconnected",
-      accountName: platformsData?.find(p => p.platform === "facebook")?.pageName,
+      accountName: platformsData?.find(p => p.platform === "facebook")?.pageName ?? undefined,
       color: "text-blue-500",
     },
     {
@@ -89,7 +89,7 @@ export default function Settings() {
       name: "Instagram",
       icon: <Instagram className="w-5 h-5" />,
       status: platformsData?.find(p => p.platform === "instagram")?.connected ? "connected" : "disconnected",
-      accountName: platformsData?.find(p => p.platform === "instagram")?.pageName,
+      accountName: platformsData?.find(p => p.platform === "instagram")?.pageName ?? undefined,
       color: "text-pink-500",
     },
     {
@@ -97,7 +97,7 @@ export default function Settings() {
       name: "LinkedIn",
       icon: <Linkedin className="w-5 h-5" />,
       status: platformsData?.find(p => p.platform === "linkedin")?.connected ? "connected" : "disconnected",
-      accountName: platformsData?.find(p => p.platform === "linkedin")?.pageName,
+      accountName: platformsData?.find(p => p.platform === "linkedin")?.pageName ?? undefined,
       color: "text-blue-600",
     },
     {
@@ -105,7 +105,7 @@ export default function Settings() {
       name: "TikTok",
       icon: <TikTokIcon className="w-5 h-5" />,
       status: platformsData?.find(p => p.platform === "tiktok")?.connected ? "connected" : "disconnected",
-      accountName: platformsData?.find(p => p.platform === "tiktok")?.pageName,
+      accountName: platformsData?.find(p => p.platform === "tiktok")?.pageName ?? undefined,
       color: "text-foreground",
     },
     {
