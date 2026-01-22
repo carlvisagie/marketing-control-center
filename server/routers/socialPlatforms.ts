@@ -12,67 +12,22 @@ import { TRPCError } from "@trpc/server";
 import { metaApi } from "../integrations/meta";
 import { linkedInApi } from "../integrations/linkedin";
 import { socialEngine, Platform, PlatformCredentials } from "../integrations/socialEngine";
-import { getDb } from "../db";
-import { platformConnections, users } from "../../drizzle/schema";
+import { getDb, getOwnerId as getOwnerIdFromDb } from "../db";
+import { platformConnections } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 
-// Default owner ID - will be set dynamically
-let cachedOwnerId: number | null = null;
-
 /**
- * Get or create the owner user ID
+ * Get owner user ID - wrapper that throws TRPC error if not found
  */
 async function getOwnerId(): Promise<number> {
-  if (cachedOwnerId !== null) {
-    return cachedOwnerId;
-  }
-
-  const db = await getDb();
-  if (!db) {
+  const ownerId = await getOwnerIdFromDb();
+  if (ownerId === null) {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: "Database not available",
+      message: "Owner user not found. Please restart the server.",
     });
   }
-
-  try {
-    // Check if owner exists
-    const existingOwner = await db
-      .select()
-      .from(users)
-      .where(eq(users.openId, "owner"))
-      .limit(1);
-
-    if (existingOwner.length > 0) {
-      cachedOwnerId = existingOwner[0].id;
-      return cachedOwnerId;
-    }
-
-    // Create owner user
-    const result = await db.insert(users).values({
-      openId: "owner",
-      name: "Owner",
-      role: "admin",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      lastSignedIn: new Date(),
-    }).returning({ id: users.id });
-
-    cachedOwnerId = result[0].id;
-    return cachedOwnerId;
-  } catch (error) {
-    console.error("Error getting/creating owner:", error);
-    // Try to get any existing user as fallback
-    const anyUser = await db.select().from(users).limit(1);
-    if (anyUser.length > 0) {
-      cachedOwnerId = anyUser[0].id;
-      return cachedOwnerId;
-    }
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Failed to get or create owner user",
-    });
-  }
+  return ownerId;
 }
 
 export const socialPlatformsRouter = router({

@@ -11,6 +11,7 @@ import { InsertUser, users } from "../drizzle/schema";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _client: ReturnType<typeof postgres> | null = null;
+let _ownerEnsured = false;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
@@ -27,12 +28,74 @@ export async function getDb() {
       });
       _db = drizzle(_client);
       console.log("[Database] Connected to PostgreSQL");
+      
+      // Auto-create owner user on first connection
+      if (!_ownerEnsured) {
+        await ensureOwnerUser(_db);
+        _ownerEnsured = true;
+      }
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
     }
   }
   return _db;
+}
+
+/**
+ * Ensure the owner user exists in the database.
+ * This is called automatically on first database connection.
+ */
+async function ensureOwnerUser(db: ReturnType<typeof drizzle>) {
+  try {
+    // Check if owner exists
+    const existing = await db.select().from(users).where(eq(users.openId, "owner")).limit(1);
+    
+    if (existing.length === 0) {
+      // Create owner user
+      await db.insert(users).values({
+        openId: "owner",
+        name: "Carl Visagie",
+        email: "coachingpurposefulliving@gmail.com",
+        role: "admin",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        lastSignedIn: new Date(),
+      });
+      console.log("[Database] Created owner user");
+    } else {
+      console.log("[Database] Owner user exists");
+    }
+  } catch (error) {
+    console.error("[Database] Failed to ensure owner user:", error);
+    // Don't throw - let the app continue even if this fails
+  }
+}
+
+/**
+ * Get the owner user ID. Creates owner if doesn't exist.
+ */
+export async function getOwnerId(): Promise<number | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    const owner = await db.select().from(users).where(eq(users.openId, "owner")).limit(1);
+    if (owner.length > 0) {
+      return owner[0].id;
+    }
+    
+    // Fallback: get any user
+    const anyUser = await db.select().from(users).limit(1);
+    if (anyUser.length > 0) {
+      return anyUser[0].id;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("[Database] Failed to get owner ID:", error);
+    return null;
+  }
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
