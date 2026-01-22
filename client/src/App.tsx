@@ -16,6 +16,7 @@ import CampaignTracker from "./pages/CampaignTracker";
 import AdCopyGenerator from "./pages/AdCopyGenerator";
 import ContentCalendar from "./pages/ContentCalendar";
 import ABTestManager from "./pages/ABTestManager";
+import SocialAccounts from "./pages/SocialAccounts";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
             <Route path="/ad-copy" component={AdCopyGenerator} />
             <Route path="/calendar" component={ContentCalendar} />
             <Route path="/ab-tests" component={ABTestManager} />
+            <Route path="/accounts" component={SocialAccounts} />
             <Route>
               <div className="flex items-center justify-center h-full">
                 <p className="text-slate-400">Page not found</p>

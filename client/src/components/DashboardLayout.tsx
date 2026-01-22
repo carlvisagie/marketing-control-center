@@ -16,7 +16,8 @@ import {
   Target,
   FileText,
   Calendar,
-  FlaskConical
+  FlaskConical,
+  Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ interface DashboardLayoutProps {
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/accounts", label: "Social Accounts", icon: Users },
   { path: "/campaigns", label: "Campaign Tracker", icon: Target },
   { path: "/ad-copy", label: "Ad Copy Generator", icon: FileText },
   { path: "/calendar", label: "Content Calendar", icon: Calendar },
@@ -99,7 +101,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-1">
+        <nav className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-200px)]">
           {navItems.map((item) => {
             const isActive = location === item.path;
             const Icon = item.icon;
