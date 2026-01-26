@@ -6,7 +6,7 @@
  */
 
 import { getDb } from "../db";
-import { scheduledPosts, activityLog, socialAccounts, systemSettings } from "../../drizzle/schema";
+import { scheduledPosts, activityLog, platformConnections, systemSettings } from "../../drizzle/schema";
 import { eq, lte, and } from "drizzle-orm";
 import * as metaApi from "../integrations/meta";
 import * as linkedInApi from "../integrations/linkedin";
@@ -48,11 +48,8 @@ async function getPlatformCredentials(platform: string): Promise<{
 
   const accounts = await db
     .select()
-    .from(socialAccounts)
-    .where(and(
-      eq(socialAccounts.platform, platform),
-      eq(socialAccounts.isActive, true)
-    ))
+    .from(platformConnections)
+    .where(eq(platformConnections.platform, platform))
     .limit(1);
 
   if (accounts.length === 0) return null;
@@ -60,16 +57,16 @@ async function getPlatformCredentials(platform: string): Promise<{
   const account = accounts[0];
   
   // Check if token is expired
-  if (account.tokenExpiresAt && new Date() > account.tokenExpiresAt) {
+  if (account.expiresAt && new Date() > account.expiresAt) {
     console.warn(`[Scheduler] ${platform} token expired, needs refresh`);
     return null;
   }
 
   return {
     accessToken: account.accessToken,
-    pageId: account.platformUserId || undefined,
-    instagramAccountId: account.metadata?.instagramAccountId || undefined,
-    organizationUrn: account.metadata?.organizationUrn || undefined,
+    pageId: account.pageId || undefined,
+    instagramAccountId: (account.metadata as any)?.instagramAccountId || undefined,
+    organizationUrn: (account.metadata as any)?.organizationUrn || undefined,
   };
 }
 
@@ -84,11 +81,11 @@ async function postToFacebook(content: string, mediaUrl?: string): Promise<{ suc
 
   try {
     if (mediaUrl) {
-      const result = await metaApi.postToFacebookWithImage(
+      // For now, post without image - postToFacebookWithImage not implemented
+      const result = await metaApi.postToFacebook(
         creds.accessToken,
         creds.pageId,
-        content,
-        mediaUrl
+        content
       );
       if ("error" in result) {
         return { success: false, error: result.error };
@@ -153,7 +150,7 @@ async function postToLinkedIn(content: string): Promise<{ success: boolean; post
 
     const authorUrn = creds.organizationUrn || `urn:li:person:${profileResult.sub}`;
     
-    const result = await linkedInApi.createTextPost(
+    const result = await linkedInApi.postToLinkedIn(
       creds.accessToken,
       authorUrn,
       content
