@@ -15,6 +15,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import oauthRoutes from "../routes/oauth";
+import { startScheduler } from "../automation/scheduler";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -76,6 +77,12 @@ async function startServer() {
     console.info(`Server running on http://localhost:${port}/`);
     console.info(`\n=== ZERO MANUS DEPENDENCIES ===`);
     console.info(`This server is fully portable and self-hostable.`);
+    console.info(`================================\n`);
+    
+    // Start the background scheduler for 24/7 marketing
+    console.info(`\n=== STARTING 24/7 SCHEDULER ===`);
+    startScheduler();
+    console.info(`Scheduler will process posts every 5 minutes`);
     console.info(`================================\n`);
   });
 }

@@ -17,6 +17,7 @@ import {
   ATTACK_SCHEDULE,
   type ContentCategory 
 } from "../automation/attackEngine";
+import { getSchedulerStats, triggerSchedulerRun } from "../automation/scheduler";
 
 export const attackRouter = router({
   // Get current attack status
@@ -236,4 +237,19 @@ export const attackRouter = router({
 
       return { success: true };
     }),
+
+  // Get scheduler status
+  getSchedulerStatus: protectedProcedure.query(() => {
+    return getSchedulerStats();
+  }),
+
+  // Manually trigger scheduler run
+  triggerScheduler: protectedProcedure.mutation(async () => {
+    await triggerSchedulerRun();
+    return { 
+      success: true, 
+      message: "Scheduler run triggered",
+      stats: getSchedulerStats(),
+    };
+  }),
 });
