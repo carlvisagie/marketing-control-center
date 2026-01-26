@@ -5,7 +5,7 @@
  */
 
 import { z } from "zod";
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { getDb } from "../db";
 import { systemSettings, scheduledPosts, activityLog } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -21,7 +21,7 @@ import { getSchedulerStats, triggerSchedulerRun } from "../automation/scheduler"
 
 export const attackRouter = router({
   // Get current attack status
-  getStatus: protectedProcedure.query(async () => {
+  getStatus: publicProcedure.query(async () => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     
@@ -42,7 +42,7 @@ export const attackRouter = router({
   }),
 
   // Toggle attack mode on/off
-  toggleAttack: protectedProcedure
+  toggleAttack: publicProcedure
     .input(z.object({ active: z.boolean() }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -86,7 +86,7 @@ export const attackRouter = router({
     }),
 
   // Generate content for a specific platform
-  generateContent: protectedProcedure
+  generateContent: publicProcedure
     .input(z.object({
       platform: z.enum(["tiktok", "instagram", "facebook", "linkedin", "twitter"]),
       category: z.enum(["educational", "testimonial", "behind_scenes", "promotional", "engagement", "trending"]),
@@ -109,7 +109,7 @@ export const attackRouter = router({
     }),
 
   // Generate a full day's content queue
-  generateDailyQueue: protectedProcedure.mutation(async () => {
+  generateDailyQueue: publicProcedure.mutation(async () => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     
@@ -132,7 +132,7 @@ export const attackRouter = router({
   }),
 
   // Get scheduled posts
-  getScheduledPosts: protectedProcedure
+  getScheduledPosts: publicProcedure
     .input(z.object({
       status: z.enum(["pending", "scheduled", "posted", "failed", "cancelled"]).optional(),
       limit: z.number().min(1).max(100).default(50),
@@ -160,7 +160,7 @@ export const attackRouter = router({
     }),
 
   // Approve a scheduled post (change from pending to scheduled)
-  approvePost: protectedProcedure
+  approvePost: publicProcedure
     .input(z.object({ postId: z.number() }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -178,7 +178,7 @@ export const attackRouter = router({
     }),
 
   // Reject a scheduled post (cancel it)
-  rejectPost: protectedProcedure
+  rejectPost: publicProcedure
     .input(z.object({ 
       postId: z.number(),
       reason: z.string().optional(),
@@ -199,12 +199,12 @@ export const attackRouter = router({
     }),
 
   // Get attack schedule
-  getSchedule: protectedProcedure.query(() => {
+  getSchedule: publicProcedure.query(() => {
     return ATTACK_SCHEDULE;
   }),
 
   // Update attack schedule for a platform
-  updateSchedule: protectedProcedure
+  updateSchedule: publicProcedure
     .input(z.object({
       platform: z.string(),
       enabled: z.boolean(),
@@ -239,12 +239,12 @@ export const attackRouter = router({
     }),
 
   // Get scheduler status
-  getSchedulerStatus: protectedProcedure.query(() => {
+  getSchedulerStatus: publicProcedure.query(() => {
     return getSchedulerStats();
   }),
 
   // Manually trigger scheduler run
-  triggerScheduler: protectedProcedure.mutation(async () => {
+  triggerScheduler: publicProcedure.mutation(async () => {
     await triggerSchedulerRun();
     return { 
       success: true, 
