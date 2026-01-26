@@ -157,7 +157,7 @@ async function getPlatformCredentials(platform: "facebook" | "instagram" | "link
   return {
     accessToken: account.accessToken,
     pageId: account.pageId || undefined,
-    instagramAccountId: (account.metadata as any)?.instagramAccountId || undefined,
+    // instagramAccountId: (account.metadata as any)?.instagramAccountId || undefined,
   };
 }
 

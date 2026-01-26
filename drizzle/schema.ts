@@ -50,7 +50,6 @@ export const platformConnections = pgTable("platform_connections", {
   refreshToken: text("refreshToken"),
   pageId: varchar("pageId", { length: 255 }),
   pageName: varchar("pageName", { length: 255 }),
-  metadata: json("metadata"),
   expiresAt: timestamp("expiresAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
