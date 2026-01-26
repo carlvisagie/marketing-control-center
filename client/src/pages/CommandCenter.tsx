@@ -1,8 +1,8 @@
 /**
  * Command Center Page
  * 
- * Give instructions to the AI in plain English.
- * The AI executes tasks across all your projects.
+ * REAL command execution - generates content with OpenAI, posts to social media.
+ * No more fake delays or simulations.
  */
 
 import { useState } from "react";
@@ -19,8 +19,12 @@ import {
   Clock,
   Zap,
   MessageSquare,
+  Facebook,
+  Linkedin,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 interface Command {
   id: string;
@@ -30,33 +34,49 @@ interface Command {
   timestamp: Date;
 }
 
-// Example commands for quick access
+// Quick commands that actually work
 const quickCommands = [
-  { label: "Check Just Talk Status", command: "Check if Just Talk is running and healthy" },
-  { label: "View Recent Errors", command: "Show me the last 10 errors from Just Talk" },
-  { label: "Generate Marketing Post", command: "Generate a marketing post about sleep coaching" },
-  { label: "Check Database Health", command: "Check the database connection and recent queries" },
+  { label: "Check Status", command: "Check status", icon: RefreshCw },
+  { label: "Post to Facebook", command: "Post to Facebook about 24/7 emotional support", icon: Facebook },
+  { label: "Post to LinkedIn", command: "Post to LinkedIn about work-life balance", icon: Linkedin },
+  { label: "Post to All", command: "Post to all platforms about needing someone to talk to", icon: Zap },
 ];
 
 export default function CommandCenter() {
   const [command, setCommand] = useState("");
-  const [isExecuting, setIsExecuting] = useState(false);
-  const [commandHistory, setCommandHistory] = useState<Command[]>([
-    {
-      id: "1",
-      text: "Check Just Talk status",
-      status: "completed",
-      result: "✅ Just Talk is running. Last health check: 2 minutes ago. No errors in the last hour.",
-      timestamp: new Date(Date.now() - 300000),
+  const [commandHistory, setCommandHistory] = useState<Command[]>([]);
+
+  const executeMutation = trpc.commands.execute.useMutation({
+    onSuccess: (data, variables) => {
+      setCommandHistory(prev => 
+        prev.map(c => 
+          c.status === "running" && c.text === variables.command
+            ? { 
+                ...c, 
+                status: data.success ? "completed" : "failed", 
+                result: data.message 
+              }
+            : c
+        )
+      );
+      
+      if (data.success) {
+        toast.success("Command executed successfully");
+      } else {
+        toast.error(data.message);
+      }
     },
-    {
-      id: "2",
-      text: "Generate 3 marketing posts about stress management",
-      status: "completed",
-      result: "Generated 3 posts. Added to approval queue.",
-      timestamp: new Date(Date.now() - 600000),
+    onError: (error, variables) => {
+      setCommandHistory(prev => 
+        prev.map(c => 
+          c.status === "running" && c.text === variables.command
+            ? { ...c, status: "failed", result: error.message }
+            : c
+        )
+      );
+      toast.error(`Command failed: ${error.message}`);
     },
-  ]);
+  });
 
   const executeCommand = async () => {
     if (!command.trim()) {
@@ -72,21 +92,11 @@ export default function CommandCenter() {
     };
 
     setCommandHistory(prev => [newCommand, ...prev]);
+    const cmdText = command;
     setCommand("");
-    setIsExecuting(true);
 
-    // Simulate command execution
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    setCommandHistory(prev => 
-      prev.map(c => 
-        c.id === newCommand.id 
-          ? { ...c, status: "completed", result: "Command executed successfully. Check the activity log for details." }
-          : c
-      )
-    );
-    setIsExecuting(false);
-    toast.success("Command executed");
+    // Execute the real command
+    executeMutation.mutate({ command: cmdText });
   };
 
   const getStatusIcon = (status: Command["status"]) => {
@@ -111,7 +121,7 @@ export default function CommandCenter() {
           Command Center
         </h1>
         <p className="text-muted-foreground mt-1">
-          Give instructions in plain English. The AI handles the technical work.
+          Real commands. Real posts. Type what you want and it happens.
         </p>
       </div>
 
@@ -124,31 +134,37 @@ export default function CommandCenter() {
               <Textarea
                 value={command}
                 onChange={(e) => setCommand(e.target.value)}
-                placeholder="Tell me what you want to do... (e.g., 'Check why Just Talk is slow' or 'Post about sleep tips on all platforms')"
+                placeholder="Examples:
+• Post to Facebook about 24/7 support
+• Post to LinkedIn about work stress
+• Post to all platforms
+• Check status"
                 className="min-h-[100px] bg-background border-border text-foreground placeholder:text-muted-foreground"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && e.metaKey) {
+                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                     executeCommand();
                   }
                 }}
               />
               <p className="text-xs text-muted-foreground mt-2">
-                Press ⌘+Enter to execute
+                Press Ctrl+Enter to execute
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex flex-wrap gap-2">
               {quickCommands.map((qc, i) => (
                 <Button
                   key={i}
                   variant="outline"
                   size="sm"
-                  onClick={() => setCommand(qc.command)}
+                  onClick={() => {
+                    setCommand(qc.command);
+                  }}
                   className="text-xs border-border hover:bg-accent"
                 >
-                  <Zap className="w-3 h-3 mr-1" />
+                  <qc.icon className="w-3 h-3 mr-1" />
                   {qc.label}
                 </Button>
               ))}
@@ -156,10 +172,10 @@ export default function CommandCenter() {
 
             <Button
               onClick={executeCommand}
-              disabled={isExecuting || !command.trim()}
+              disabled={executeMutation.isPending || !command.trim()}
               className="bg-primary hover:bg-primary/90"
             >
-              {isExecuting ? (
+              {executeMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Executing...
@@ -175,14 +191,69 @@ export default function CommandCenter() {
         </div>
       </Card>
 
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Button
+          variant="outline"
+          className="h-auto py-4 flex flex-col items-center gap-2"
+          onClick={() => {
+            setCommand("Post to Facebook about needing someone to listen");
+            setTimeout(executeCommand, 100);
+          }}
+          disabled={executeMutation.isPending}
+        >
+          <Facebook className="w-6 h-6 text-blue-500" />
+          <span className="text-xs">Post to Facebook</span>
+        </Button>
+        
+        <Button
+          variant="outline"
+          className="h-auto py-4 flex flex-col items-center gap-2"
+          onClick={() => {
+            setCommand("Post to LinkedIn about work-life balance and mental wellness");
+            setTimeout(executeCommand, 100);
+          }}
+          disabled={executeMutation.isPending}
+        >
+          <Linkedin className="w-6 h-6 text-blue-600" />
+          <span className="text-xs">Post to LinkedIn</span>
+        </Button>
+
+        <Button
+          variant="outline"
+          className="h-auto py-4 flex flex-col items-center gap-2"
+          onClick={() => {
+            setCommand("Post to all platforms about 24/7 emotional support");
+            setTimeout(executeCommand, 100);
+          }}
+          disabled={executeMutation.isPending}
+        >
+          <Zap className="w-6 h-6 text-yellow-500" />
+          <span className="text-xs">Post to All</span>
+        </Button>
+
+        <Button
+          variant="outline"
+          className="h-auto py-4 flex flex-col items-center gap-2"
+          onClick={() => {
+            setCommand("Check status");
+            setTimeout(executeCommand, 100);
+          }}
+          disabled={executeMutation.isPending}
+        >
+          <RefreshCw className="w-6 h-6 text-green-500" />
+          <span className="text-xs">Check Status</span>
+        </Button>
+      </div>
+
       {/* Command History */}
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold text-foreground">Recent Commands</h2>
+        <h2 className="text-lg font-semibold text-foreground">Command History</h2>
         
         {commandHistory.length === 0 ? (
           <Card className="p-8 bg-card border-border text-center">
             <Terminal className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">No commands yet. Start by typing a command above.</p>
+            <p className="text-muted-foreground">No commands yet. Click a quick action or type a command above.</p>
           </Card>
         ) : (
           <div className="space-y-3">
@@ -191,7 +262,7 @@ export default function CommandCenter() {
                 <div className="flex items-start gap-3">
                   {getStatusIcon(cmd.status)}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="font-medium text-foreground">{cmd.text}</span>
                       <Badge 
                         variant="outline" 
@@ -206,7 +277,7 @@ export default function CommandCenter() {
                       </Badge>
                     </div>
                     {cmd.result && (
-                      <p className="text-sm text-muted-foreground">{cmd.result}</p>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{cmd.result}</p>
                     )}
                     <p className="text-xs text-muted-foreground mt-2">
                       {cmd.timestamp.toLocaleTimeString()}
