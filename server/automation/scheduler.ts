@@ -5,7 +5,7 @@
  * posting them to the appropriate social platforms.
  */
 
-import { getDb } from "../_core/db";
+import { getDb } from "../db";
 import { scheduledPosts, activityLog, socialAccounts, systemSettings } from "../../drizzle/schema";
 import { eq, lte, and } from "drizzle-orm";
 import * as metaApi from "../integrations/meta";
