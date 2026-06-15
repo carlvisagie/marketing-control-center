@@ -15,6 +15,7 @@ import { tiktokRouter } from "./routers/tiktok";
 import { socialPlatformsRouter } from "./routers/socialPlatforms";
 import { attackRouter } from "./routers/attack";
 import { commandsRouter } from "./routers/commands";
+import { podAcquisitionRouter } from "./routers/podAcquisition";
 
 export const appRouter = router({
   // Simple JWT Authentication (no Manus OAuth)
@@ -46,6 +47,9 @@ export const appRouter = router({
 
   // Real Command Execution (generates content, posts to social)
   commands: commandsRouter,
+
+  // POD Autonomous Acquisition Engine (Jetfighter1 Military Aviation)
+  pod: podAcquisitionRouter,
 });
 
 export type AppRouter = typeof appRouter;
