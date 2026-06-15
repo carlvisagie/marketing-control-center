@@ -20,6 +20,7 @@ import { podUploadEngineRouter } from "./routers/podUploadEngine";
 import { podMediaEngineRouter } from "./routers/podMediaEngine";
 import { podComplianceRouter } from "./routers/podCompliance";
 import { podDesignStudioRouter } from "./routers/podDesignStudio";
+import { podOrganismRouter } from "./routers/podOrganism";
 
 export const appRouter = router({
   // Simple JWT Authentication (no Manus OAuth)
@@ -66,6 +67,9 @@ export const appRouter = router({
 
   // POD Design Studio — Unsplash photo browser, artwork intake, bulk queue
   podDesignStudio: podDesignStudioRouter,
+
+  // POD Organism State — living health snapshot (GREEN/AMBER/RED)
+  podOrganism: podOrganismRouter,
 });
 
 export type AppRouter = typeof appRouter;

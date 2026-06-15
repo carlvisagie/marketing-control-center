@@ -95,7 +95,7 @@ export interface PlatformListing {
 
 // ─── In-memory Design Queue (persists in DB in production) ────────────────────
 
-let designQueue: DesignRecord[] = [
+export let designQueue: DesignRecord[] = [
   // Pre-seeded with proven designs from Redbubble sales data
   {
     id: "design-001",
@@ -256,7 +256,7 @@ function logActivity(activity: Omit<UploadActivity, "id" | "timestamp">) {
 
 // ─── Platform Configuration ───────────────────────────────────────────────────
 
-const PLATFORM_CONFIG: Record<PODPlatform, {
+export const PLATFORM_CONFIG: Record<PODPlatform, {
   name: string;
   maxTags: number;
   maxTitleLength: number;

@@ -749,7 +749,7 @@ function BulkQueueTab() {
       setResults(data as Record<string, unknown>);
       toast.success(`Processed ${data.processed} designs — ${data.readyToUpload} ready to upload`);
     },
-    onError: () => toast.error("Processing failed"),
+    onError: (err) => toast.error(err.message || "Processing failed"),
   });
 
   const addDesign = () => {
