@@ -19,6 +19,7 @@ import { podAcquisitionRouter } from "./routers/podAcquisition";
 import { podUploadEngineRouter } from "./routers/podUploadEngine";
 import { podMediaEngineRouter } from "./routers/podMediaEngine";
 import { podComplianceRouter } from "./routers/podCompliance";
+import { podDesignStudioRouter } from "./routers/podDesignStudio";
 
 export const appRouter = router({
   // Simple JWT Authentication (no Manus OAuth)
@@ -62,6 +63,9 @@ export const appRouter = router({
 
   // POD Compliance Engine — enforces all platform rules before upload
   podCompliance: podComplianceRouter,
+
+  // POD Design Studio — Unsplash photo browser, artwork intake, bulk queue
+  podDesignStudio: podDesignStudioRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -23,7 +23,8 @@ import {
   Upload,
   Clapperboard,
   Zap,
-  ShieldCheck
+  ShieldCheck,
+  Palette
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ const podNavItems = [
   { path: "/pod-upload", label: "Bulk Upload Engine", icon: Upload, badge: "NEW" },
   { path: "/pod-media", label: "Viral Media Engine", icon: Clapperboard, badge: "NEW" },
   { path: "/pod-compliance", label: "Compliance Engine", icon: ShieldCheck, badge: "NEW" },
+  { path: "/pod-design-studio", label: "Design Studio", icon: Palette, badge: "NEW" },
 ];
 
 const navItems = [

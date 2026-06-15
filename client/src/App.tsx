@@ -21,6 +21,7 @@ import PODAcquisition from "./pages/PODAcquisition";
 import PODUploadEngine from "./pages/PODUploadEngine";
 import PODMediaEngine from "./pages/PODMediaEngine";
 import PODCompliance from "./pages/PODCompliance";
+import PODDesignStudio from "./pages/PODDesignStudio";
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
             <Route path="/pod-upload" component={PODUploadEngine} />
             <Route path="/pod-media" component={PODMediaEngine} />
             <Route path="/pod-compliance" component={PODCompliance} />
+            <Route path="/pod-design-studio" component={PODDesignStudio} />
             <Route>
               <div className="flex items-center justify-center h-full">
                 <p className="text-slate-400">Page not found</p>
