@@ -18,6 +18,9 @@ import ContentCalendar from "./pages/ContentCalendar";
 import ABTestManager from "./pages/ABTestManager";
 import SocialAccounts from "./pages/SocialAccounts";
 import PODAcquisition from "./pages/PODAcquisition";
+import PODUploadEngine from "./pages/PODUploadEngine";
+import PODMediaEngine from "./pages/PODMediaEngine";
+import PODCompliance from "./pages/PODCompliance";
 
 function App() {
   return (
@@ -40,6 +43,9 @@ function App() {
             <Route path="/ab-tests" component={ABTestManager} />
             <Route path="/accounts" component={SocialAccounts} />
             <Route path="/pod" component={PODAcquisition} />
+            <Route path="/pod-upload" component={PODUploadEngine} />
+            <Route path="/pod-media" component={PODMediaEngine} />
+            <Route path="/pod-compliance" component={PODCompliance} />
             <Route>
               <div className="flex items-center justify-center h-full">
                 <p className="text-slate-400">Page not found</p>

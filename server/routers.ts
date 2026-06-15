@@ -16,6 +16,9 @@ import { socialPlatformsRouter } from "./routers/socialPlatforms";
 import { attackRouter } from "./routers/attack";
 import { commandsRouter } from "./routers/commands";
 import { podAcquisitionRouter } from "./routers/podAcquisition";
+import { podUploadEngineRouter } from "./routers/podUploadEngine";
+import { podMediaEngineRouter } from "./routers/podMediaEngine";
+import { podComplianceRouter } from "./routers/podCompliance";
 
 export const appRouter = router({
   // Simple JWT Authentication (no Manus OAuth)
@@ -50,6 +53,15 @@ export const appRouter = router({
 
   // POD Autonomous Acquisition Engine (Jetfighter1 Military Aviation)
   pod: podAcquisitionRouter,
+
+  // POD Autonomous Bulk Upload Engine — all 5 platforms
+  podUpload: podUploadEngineRouter,
+
+  // POD Jetfighter Viral Media Engine — aviation content generation
+  podMedia: podMediaEngineRouter,
+
+  // POD Compliance Engine — enforces all platform rules before upload
+  podCompliance: podComplianceRouter,
 });
 
 export type AppRouter = typeof appRouter;

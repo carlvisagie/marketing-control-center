@@ -19,7 +19,11 @@ import {
   FlaskConical,
   Users,
   Crosshair,
-  Plane
+  Plane,
+  Upload,
+  Clapperboard,
+  Zap,
+  ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,7 +34,10 @@ interface DashboardLayoutProps {
 }
 
 const podNavItems = [
-  { path: "/pod", label: "POD Acquisition Engine", icon: Crosshair },
+  { path: "/pod", label: "POD Acquisition Engine", icon: Crosshair, badge: "LIVE" },
+  { path: "/pod-upload", label: "Bulk Upload Engine", icon: Upload, badge: "NEW" },
+  { path: "/pod-media", label: "Viral Media Engine", icon: Clapperboard, badge: "NEW" },
+  { path: "/pod-compliance", label: "Compliance Engine", icon: ShieldCheck, badge: "NEW" },
 ];
 
 const navItems = [
@@ -127,7 +134,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   >
                     <Icon className="h-4 w-4" />
                     <span className="flex-1">{item.label}</span>
-                    <span className="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded">NEW</span>
+                    <span className="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded">{item.badge}</span>
                   </div>
                 </Link>
               );
