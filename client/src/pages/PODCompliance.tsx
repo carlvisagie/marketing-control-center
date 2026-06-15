@@ -25,6 +25,8 @@ import {
   Search,
   BookOpen,
   Zap,
+  ImageIcon,
+  Upload,
 } from "lucide-react";
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -49,6 +51,59 @@ export default function PODCompliance() {
   const [productionPartner, setProductionPartner] = useState(false);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["amazon_merch", "redbubble", "etsy", "spring", "spreadshirt"]);
   const [runCheck, setRunCheck] = useState(false);
+
+  // Artwork validator state
+  const [artworkFilename, setArtworkFilename] = useState("");
+  const [artworkFormat, setArtworkFormat] = useState("PNG");
+  const [artworkWidth, setArtworkWidth] = useState("");
+  const [artworkHeight, setArtworkHeight] = useState("");
+  const [artworkDpi, setArtworkDpi] = useState("");
+  const [artworkSizeMB, setArtworkSizeMB] = useState("");
+  const [artworkTransparent, setArtworkTransparent] = useState<boolean | undefined>(undefined);
+  const [artworkColourMode, setArtworkColourMode] = useState("");
+  const [artworkPlatforms, setArtworkPlatforms] = useState<("amazon" | "redbubble" | "etsy" | "spring" | "spreadshirt")[]>(["amazon", "redbubble", "etsy", "spring", "spreadshirt"]);
+  const [artworkResult, setArtworkResult] = useState<any>(null);
+
+  const validateArtwork = trpc.podCompliance.validateArtwork.useMutation({
+    onSuccess: (data) => setArtworkResult(data),
+  });
+
+  const handleArtworkFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setArtworkFilename(file.name);
+    const ext = file.name.split(".").pop()?.toUpperCase() ?? "PNG";
+    setArtworkFormat(ext);
+    setArtworkSizeMB((file.size / (1024 * 1024)).toFixed(2));
+    // Read image dimensions
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      setArtworkWidth(String(img.naturalWidth));
+      setArtworkHeight(String(img.naturalHeight));
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  };
+
+  const handleArtworkValidate = () => {
+    if (!artworkFilename || !artworkWidth || !artworkHeight || !artworkSizeMB) return;
+    validateArtwork.mutate({
+      filename: artworkFilename,
+      format: artworkFormat,
+      widthPx: parseInt(artworkWidth),
+      heightPx: parseInt(artworkHeight),
+      dpi: artworkDpi ? parseFloat(artworkDpi) : undefined,
+      fileSizeMB: parseFloat(artworkSizeMB),
+      hasTransparentBackground: artworkTransparent,
+      colourMode: artworkColourMode || undefined,
+      platforms: artworkPlatforms,
+    });
+  };
+
+  const toggleArtworkPlatform = (p: "amazon" | "redbubble" | "etsy" | "spring" | "spreadshirt") => {
+    setArtworkPlatforms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
+  };
 
   // Rulebook
   const { data: rulebook } = trpc.podCompliance.getRulebook.useQuery();
@@ -118,7 +173,8 @@ export default function PODCompliance() {
           <TabsTrigger value="checker">Listing Validator</TabsTrigger>
           <TabsTrigger value="term">Term Checker</TabsTrigger>
           <TabsTrigger value="rulebook">Rulebook</TabsTrigger>
-          <TabsTrigger value="safe-terms">Safe Aviation Terms</TabsTrigger>
+            <TabsTrigger value="safe-terms">Safe Aviation Terms</TabsTrigger>
+          <TabsTrigger value="artwork">Artwork Validator</TabsTrigger>
         </TabsList>
 
         {/* Listing Validator */}
@@ -509,6 +565,273 @@ export default function PODCompliance() {
               </Card>
             </>
           )}
+        </TabsContent>
+        {/* Artwork Validator */}
+        <TabsContent value="artwork" className="mt-4 space-y-4">
+          <Card className="bg-slate-900 border-slate-800">
+            <CardHeader>
+              <CardTitle className="text-white text-base flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-blue-400" />
+                Artwork File Validator
+              </CardTitle>
+              <p className="text-slate-400 text-xs mt-1">
+                Upload your design file or enter its specs manually. Engine checks dimensions, DPI, format, file size, and colour mode against all 5 platform requirements.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* File upload shortcut */}
+              <div>
+                <Label className="text-slate-300 text-xs mb-1 block">Quick-fill from file (reads dimensions and size automatically)</Label>
+                <input
+                  type="file"
+                  accept="image/*,.ai,.eps,.pdf"
+                  onChange={handleArtworkFileChange}
+                  className="block w-full text-xs text-slate-400 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer"
+                />
+              </div>
+
+              {/* Manual spec entry */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div>
+                  <Label className="text-slate-300 text-xs">Filename</Label>
+                  <Input value={artworkFilename} onChange={e => setArtworkFilename(e.target.value)}
+                    placeholder="design.png" className="bg-slate-800 border-slate-700 text-white text-xs mt-1" />
+                </div>
+                <div>
+                  <Label className="text-slate-300 text-xs">Format</Label>
+                  <select value={artworkFormat} onChange={e => setArtworkFormat(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded px-2 py-2 mt-1">
+                    {["PNG","JPG","JPEG","GIF","BMP","SVG","AI","EPS","PDF"].map(f => (
+                      <option key={f} value={f}>{f}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-slate-300 text-xs">Width (px)</Label>
+                  <Input value={artworkWidth} onChange={e => setArtworkWidth(e.target.value)}
+                    placeholder="4500" type="number" className="bg-slate-800 border-slate-700 text-white text-xs mt-1" />
+                </div>
+                <div>
+                  <Label className="text-slate-300 text-xs">Height (px)</Label>
+                  <Input value={artworkHeight} onChange={e => setArtworkHeight(e.target.value)}
+                    placeholder="5400" type="number" className="bg-slate-800 border-slate-700 text-white text-xs mt-1" />
+                </div>
+                <div>
+                  <Label className="text-slate-300 text-xs">DPI (optional)</Label>
+                  <Input value={artworkDpi} onChange={e => setArtworkDpi(e.target.value)}
+                    placeholder="300" type="number" className="bg-slate-800 border-slate-700 text-white text-xs mt-1" />
+                </div>
+                <div>
+                  <Label className="text-slate-300 text-xs">File Size (MB)</Label>
+                  <Input value={artworkSizeMB} onChange={e => setArtworkSizeMB(e.target.value)}
+                    placeholder="8.5" type="number" step="0.01" className="bg-slate-800 border-slate-700 text-white text-xs mt-1" />
+                </div>
+                <div>
+                  <Label className="text-slate-300 text-xs">Colour Mode</Label>
+                  <select value={artworkColourMode} onChange={e => setArtworkColourMode(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded px-2 py-2 mt-1">
+                    <option value="">Unknown</option>
+                    <option value="RGB">RGB / sRGB</option>
+                    <option value="CMYK">CMYK</option>
+                    <option value="Grayscale">Grayscale</option>
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-slate-300 text-xs">Transparent Background</Label>
+                  <select value={artworkTransparent === undefined ? "" : artworkTransparent ? "yes" : "no"}
+                    onChange={e => setArtworkTransparent(e.target.value === "" ? undefined : e.target.value === "yes")}
+                    className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded px-2 py-2 mt-1">
+                    <option value="">Unknown</option>
+                    <option value="yes">Yes — transparent</option>
+                    <option value="no">No — solid background</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Platform selection */}
+              <div>
+                <Label className="text-slate-300 text-xs mb-2 block">Check Against Platforms</Label>
+                <div className="flex flex-wrap gap-2">
+                  {(["amazon","redbubble","etsy","spring","spreadshirt"] as const).map(p => (
+                    <button key={p} onClick={() => toggleArtworkPlatform(p)}
+                      className={`text-xs px-3 py-1 rounded border transition-colors ${
+                        artworkPlatforms.includes(p)
+                          ? "bg-blue-500/20 text-blue-300 border-blue-500/40"
+                          : "bg-slate-800 text-slate-500 border-slate-700"
+                      }`}>
+                      {p.charAt(0).toUpperCase() + p.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Button onClick={handleArtworkValidate} disabled={validateArtwork.isPending || !artworkFilename}
+                className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
+                <Upload className="h-4 w-4" />
+                {validateArtwork.isPending ? "Checking..." : "Validate Artwork"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Results */}
+          {artworkResult && (
+            <div className="space-y-3">
+              {/* Overall status */}
+              <Card className={`border ${
+                artworkResult.overallStatus === "PASS" ? "bg-emerald-900/20 border-emerald-500/30" :
+                artworkResult.overallStatus === "WARNING" ? "bg-yellow-900/20 border-yellow-500/30" :
+                "bg-red-900/20 border-red-500/30"
+              }`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    {artworkResult.overallStatus === "PASS" ? (
+                      <CheckCircle className="h-6 w-6 text-emerald-400" />
+                    ) : artworkResult.overallStatus === "WARNING" ? (
+                      <AlertTriangle className="h-6 w-6 text-yellow-400" />
+                    ) : (
+                      <XCircle className="h-6 w-6 text-red-400" />
+                    )}
+                    <div>
+                      <p className={`font-bold text-sm ${
+                        artworkResult.overallStatus === "PASS" ? "text-emerald-400" :
+                        artworkResult.overallStatus === "WARNING" ? "text-yellow-400" : "text-red-400"
+                      }`}>
+                        {artworkResult.overallStatus === "PASS" ? "ARTWORK READY TO UPLOAD" :
+                         artworkResult.overallStatus === "WARNING" ? "ARTWORK HAS WARNINGS — REVIEW BEFORE UPLOADING" :
+                         "ARTWORK WILL BE REJECTED — FIX ISSUES FIRST"}
+                      </p>
+                      <p className="text-slate-400 text-xs mt-0.5">
+                        {artworkResult.summary.failedPlatforms.length > 0 &&
+                          `Fails on: ${artworkResult.summary.failedPlatforms.join(", ")} · `}
+                        {artworkResult.summary.passingPlatforms.length > 0 &&
+                          `Passes on: ${artworkResult.summary.passingPlatforms.join(", ")}`}
+                      </p>
+                    </div>
+                  </div>
+                  {/* Specs summary */}
+                  <div className="mt-3 grid grid-cols-3 md:grid-cols-6 gap-2">
+                    {Object.entries(artworkResult.artworkSpecs).filter(([k]) => k !== "filename").map(([k, v]) => (
+                      <div key={k} className="text-center">
+                        <p className="text-xs text-slate-500 capitalize">{k.replace(/([A-Z])/g, " $1").trim()}</p>
+                        <p className="text-xs text-white font-medium">{String(v)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Per-platform results */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {artworkResult.platformResults.map((r: any) => (
+                  <Card key={r.platform} className={`border ${
+                    r.status === "PASS" ? "bg-slate-900 border-emerald-500/20" :
+                    r.status === "WARNING" ? "bg-slate-900 border-yellow-500/20" :
+                    "bg-slate-900 border-red-500/20"
+                  }`}>
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        {r.status === "PASS" ? <CheckCircle className="h-4 w-4 text-emerald-400" /> :
+                         r.status === "WARNING" ? <AlertTriangle className="h-4 w-4 text-yellow-400" /> :
+                         <XCircle className="h-4 w-4 text-red-400" />}
+                        <span className="text-white text-sm font-medium">{r.platform}</span>
+                        <Badge className={`text-xs ml-auto ${
+                          r.status === "PASS" ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" :
+                          r.status === "WARNING" ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" :
+                          "bg-red-500/20 text-red-400 border-red-500/30"
+                        }`}>{r.status}</Badge>
+                      </div>
+                      {r.issues.map((issue: string, i: number) => (
+                        <div key={i} className="flex gap-2 text-xs text-red-300 mb-1">
+                          <XCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                          <span>{issue}</span>
+                        </div>
+                      ))}
+                      {r.warnings.map((warn: string, i: number) => (
+                        <div key={i} className="flex gap-2 text-xs text-yellow-300 mb-1">
+                          <AlertTriangle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                          <span>{warn}</span>
+                        </div>
+                      ))}
+                      {r.recommendations.map((rec: string, i: number) => (
+                        <div key={i} className="flex gap-2 text-xs text-slate-400 mb-1">
+                          <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                          <span>{rec}</span>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Universal recommendations */}
+              {artworkResult.universalRecommendations.length > 0 && (
+                <Card className="bg-blue-900/10 border-blue-500/20">
+                  <CardContent className="p-3">
+                    <p className="text-blue-400 text-xs font-medium mb-2 flex items-center gap-1">
+                      <Info className="h-3 w-3" /> Universal Recommendations
+                    </p>
+                    {artworkResult.universalRecommendations.map((rec: string, i: number) => (
+                      <p key={i} className="text-xs text-slate-300 mb-1">• {rec}</p>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+
+          {/* Spec reference card */}
+          <Card className="bg-slate-900 border-slate-800">
+            <CardHeader>
+              <CardTitle className="text-white text-sm flex items-center gap-2">
+                <BookOpen className="h-4 w-4 text-slate-400" />
+                Platform Artwork Specifications — Quick Reference
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-slate-300">
+                  <thead>
+                    <tr className="border-b border-slate-700">
+                      <th className="text-left py-2 pr-4 text-slate-400">Platform</th>
+                      <th className="text-left py-2 pr-4 text-slate-400">Min Dimensions</th>
+                      <th className="text-left py-2 pr-4 text-slate-400">Recommended</th>
+                      <th className="text-left py-2 pr-4 text-slate-400">Min DPI</th>
+                      <th className="text-left py-2 pr-4 text-slate-400">Formats</th>
+                      <th className="text-left py-2 pr-4 text-slate-400">Max Size</th>
+                      <th className="text-left py-2 text-slate-400">Colour Mode</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { platform: "Amazon Merch", min: "4500×5400px", rec: "4500×5400px", dpi: "300", formats: "PNG only", size: "25 MB", colour: "sRGB (RGB 8-bit)", critical: true },
+                      { platform: "Redbubble", min: "2400×3200px", rec: "4500×5400px", dpi: "150", formats: "PNG, JPG, GIF", size: "300 MB", colour: "RGB", critical: false },
+                      { platform: "Etsy", min: "2000px short side", rec: "4500×5400px", dpi: "72", formats: "PNG, JPG", size: "20 MB", colour: "RGB", critical: false },
+                      { platform: "Spring", min: "3720×4950px", rec: "3720×4950px", dpi: "150", formats: "PNG, JPG, AI, EPS, PDF", size: "50 MB", colour: "RGB", critical: false },
+                      { platform: "Spreadshirt", min: "4000px long side", rec: "4500×5400px", dpi: "200", formats: "PNG, JPG, BMP, GIF", size: "10 MB", colour: "RGB", critical: false },
+                    ].map(row => (
+                      <tr key={row.platform} className={`border-b border-slate-800 ${
+                        row.critical ? "bg-amber-900/10" : ""
+                      }`}>
+                        <td className="py-2 pr-4 font-medium text-white">
+                          {row.platform}
+                          {row.critical && <span className="ml-1 text-amber-400 text-xs">(strictest)</span>}
+                        </td>
+                        <td className="py-2 pr-4">{row.min}</td>
+                        <td className="py-2 pr-4 text-emerald-400">{row.rec}</td>
+                        <td className="py-2 pr-4">{row.dpi}</td>
+                        <td className="py-2 pr-4">{row.formats}</td>
+                        <td className="py-2 pr-4">{row.size}</td>
+                        <td className="py-2">{row.colour}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-slate-500 text-xs mt-3">
+                <strong className="text-amber-400">Universal standard:</strong> Design at 4500×5400px, 300 DPI, PNG, transparent background, sRGB colour mode — and your artwork passes all 5 platforms without re-exporting.
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

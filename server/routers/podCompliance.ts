@@ -888,6 +888,259 @@ export const podComplianceRouter = router({
   }),
 
   /**
+   * Validate artwork file specifications against all 5 platform requirements.
+   * Checks: dimensions, DPI, file format, file size, colour mode, transparency.
+   * Sources:
+   *   Amazon: https://merch.amazon.com/resource/201849250 (4500x5400px, 300dpi, PNG, 25MB, sRGB, transparent)
+   *   Redbubble: min 2400x3200px recommended 4500x5400, 150dpi min, PNG/JPG/GIF, 300MB
+   *   Etsy: 2000px min short side, 72dpi min (300 rec), PNG/JPG, 20MB
+   *   Spring: 3720x4950px rec, 150dpi min, PNG/JPG/AI/EPS/PDF, 50MB
+   *   Spreadshirt: 4000px long side, 200dpi min, PNG/JPG/BMP/GIF, 10MB
+   */
+  validateArtwork: procedure
+    .input(z.object({
+      filename: z.string(),
+      format: z.string(),           // e.g. "PNG", "JPG", "SVG"
+      widthPx: z.number(),
+      heightPx: z.number(),
+      dpi: z.number().optional(),   // may not always be readable client-side
+      fileSizeMB: z.number(),
+      hasTransparentBackground: z.boolean().optional(),
+      colourMode: z.string().optional(), // "RGB", "CMYK", "sRGB"
+      platforms: z.array(z.enum(["amazon", "redbubble", "etsy", "spring", "spreadshirt"])),
+    }))
+    .mutation(({ input }) => {
+      const { filename, format, widthPx, heightPx, dpi, fileSizeMB, hasTransparentBackground, colourMode, platforms } = input;
+      const fmt = format.toUpperCase().replace(".", "");
+
+      type PlatformResult = {
+        platform: string;
+        status: "PASS" | "FAIL" | "WARNING";
+        issues: string[];
+        warnings: string[];
+        recommendations: string[];
+      };
+
+      const results: PlatformResult[] = [];
+
+      // ── AMAZON MERCH ──────────────────────────────────────────────────────────
+      if (platforms.includes("amazon")) {
+        const issues: string[] = [];
+        const warnings: string[] = [];
+        const recommendations: string[] = [];
+
+        if (fmt !== "PNG") {
+          issues.push(`File format is ${fmt} — Amazon Merch requires PNG only. Convert to PNG before uploading.`);
+        }
+        if (widthPx < 4500 || heightPx < 5400) {
+          issues.push(`Dimensions are ${widthPx}×${heightPx}px — Amazon requires exactly 4500×5400px. Resize your canvas.`);
+        }
+        if (widthPx > 4500 || heightPx > 5400) {
+          warnings.push(`Dimensions ${widthPx}×${heightPx}px exceed 4500×5400px. Amazon's new editor accepts larger files but 4500×5400 is the proven standard.`);
+        }
+        if (dpi !== undefined && dpi < 300) {
+          issues.push(`DPI is ${dpi} — Amazon requires 300 DPI. Re-export at 300 DPI or your design will print blurry.`);
+        }
+        if (fileSizeMB > 25) {
+          issues.push(`File size is ${fileSizeMB.toFixed(1)}MB — Amazon's 25MB limit exceeded. Use Photoshop 'Smallest File Size' PNG export option.`);
+        }
+        if (hasTransparentBackground === false) {
+          issues.push(`Transparent background required for Amazon. A white background will print as a visible white rectangle on the shirt.`);
+        }
+        if (colourMode && colourMode.toUpperCase() === "CMYK") {
+          issues.push(`Colour mode is CMYK — Amazon requires sRGB (RGB 8-bit). Convert to RGB before exporting.`);
+        }
+        if (fmt === "PNG" && widthPx === 4500 && heightPx === 5400 && fileSizeMB <= 25) {
+          recommendations.push("Design meets Amazon's core requirements. Ensure transparent background and sRGB colour mode in your export settings.");
+        }
+
+        results.push({
+          platform: "Amazon Merch",
+          status: issues.length > 0 ? "FAIL" : warnings.length > 0 ? "WARNING" : "PASS",
+          issues,
+          warnings,
+          recommendations,
+        });
+      }
+
+      // ── REDBUBBLE ─────────────────────────────────────────────────────────────
+      if (platforms.includes("redbubble")) {
+        const issues: string[] = [];
+        const warnings: string[] = [];
+        const recommendations: string[] = [];
+
+        const allowedFormats = ["PNG", "JPG", "JPEG", "GIF"];
+        if (!allowedFormats.includes(fmt)) {
+          issues.push(`File format ${fmt} not accepted by Redbubble. Use PNG, JPG, or GIF.`);
+        }
+        if (widthPx < 2400 || heightPx < 3200) {
+          issues.push(`Dimensions ${widthPx}×${heightPx}px are below Redbubble's minimum of 2400×3200px. Designs will be rejected or print poorly.`);
+        } else if (widthPx < 4500 || heightPx < 5400) {
+          warnings.push(`Dimensions ${widthPx}×${heightPx}px meet the minimum but Redbubble recommends 4500×5400px for best print quality across all products.`);
+        }
+        if (dpi !== undefined && dpi < 150) {
+          issues.push(`DPI ${dpi} is below Redbubble's 150 DPI minimum. Designs will print blurry.`);
+        } else if (dpi !== undefined && dpi < 300) {
+          warnings.push(`DPI ${dpi} meets minimum but 300 DPI is recommended for sharp prints on all Redbubble products.`);
+        }
+        if (fileSizeMB > 300) {
+          issues.push(`File size ${fileSizeMB.toFixed(1)}MB exceeds Redbubble's 300MB limit.`);
+        }
+        if (fmt === "PNG") {
+          recommendations.push("PNG with transparent background is ideal for Redbubble — designs look professional on all product colours.");
+        }
+
+        results.push({
+          platform: "Redbubble",
+          status: issues.length > 0 ? "FAIL" : warnings.length > 0 ? "WARNING" : "PASS",
+          issues,
+          warnings,
+          recommendations,
+        });
+      }
+
+      // ── ETSY ──────────────────────────────────────────────────────────────────
+      if (platforms.includes("etsy")) {
+        const issues: string[] = [];
+        const warnings: string[] = [];
+        const recommendations: string[] = [];
+
+        const allowedFormats = ["PNG", "JPG", "JPEG"];
+        if (!allowedFormats.includes(fmt)) {
+          issues.push(`File format ${fmt} not accepted by Etsy. Use PNG or JPG.`);
+        }
+        const shortSide = Math.min(widthPx, heightPx);
+        if (shortSide < 2000) {
+          issues.push(`Shortest dimension is ${shortSide}px — Etsy requires at least 2000px on the shortest side for listing images.`);
+        }
+        if (fileSizeMB > 20) {
+          issues.push(`File size ${fileSizeMB.toFixed(1)}MB exceeds Etsy's 20MB limit.`);
+        }
+        if (dpi !== undefined && dpi < 72) {
+          warnings.push(`DPI ${dpi} is very low. Etsy recommends 300 DPI for print-quality listings.`);
+        } else if (dpi !== undefined && dpi < 300) {
+          warnings.push(`DPI ${dpi} is acceptable for Etsy listings but 300 DPI is recommended for professional presentation.`);
+        }
+        recommendations.push("For Etsy POD listings, ensure your shop settings declare your POD provider as a production partner — required by Etsy policy.");
+
+        results.push({
+          platform: "Etsy",
+          status: issues.length > 0 ? "FAIL" : warnings.length > 0 ? "WARNING" : "PASS",
+          issues,
+          warnings,
+          recommendations,
+        });
+      }
+
+      // ── SPRING ────────────────────────────────────────────────────────────────
+      if (platforms.includes("spring")) {
+        const issues: string[] = [];
+        const warnings: string[] = [];
+        const recommendations: string[] = [];
+
+        const allowedFormats = ["PNG", "JPG", "JPEG", "AI", "EPS", "PDF", "GIF"];
+        if (!allowedFormats.includes(fmt)) {
+          issues.push(`File format ${fmt} not accepted by Spring. Use PNG, JPG, AI, EPS, or PDF.`);
+        }
+        if (widthPx < 3720 || heightPx < 4950) {
+          warnings.push(`Dimensions ${widthPx}×${heightPx}px are below Spring's recommended 3720×4950px. Design may print at reduced quality.`);
+        }
+        if (dpi !== undefined && dpi < 150) {
+          issues.push(`DPI ${dpi} is below Spring's 150 DPI minimum.`);
+        } else if (dpi !== undefined && dpi < 300) {
+          warnings.push(`DPI ${dpi} meets Spring's minimum. 300 DPI recommended for best results.`);
+        }
+        if (fileSizeMB > 50) {
+          issues.push(`File size ${fileSizeMB.toFixed(1)}MB exceeds Spring's 50MB limit.`);
+        }
+        recommendations.push("Spring accepts vector formats (AI, EPS) which scale perfectly to any size — consider using vectors for text-heavy designs.");
+
+        results.push({
+          platform: "Spring",
+          status: issues.length > 0 ? "FAIL" : warnings.length > 0 ? "WARNING" : "PASS",
+          issues,
+          warnings,
+          recommendations,
+        });
+      }
+
+      // ── SPREADSHIRT ───────────────────────────────────────────────────────────
+      if (platforms.includes("spreadshirt")) {
+        const issues: string[] = [];
+        const warnings: string[] = [];
+        const recommendations: string[] = [];
+
+        const allowedFormats = ["PNG", "JPG", "JPEG", "BMP", "GIF"];
+        if (!allowedFormats.includes(fmt)) {
+          issues.push(`File format ${fmt} not accepted by Spreadshirt. Use PNG, JPG, BMP, or GIF.`);
+        }
+        const longSide = Math.max(widthPx, heightPx);
+        if (longSide < 4000) {
+          issues.push(`Longest dimension is ${longSide}px — Spreadshirt requires at least 4000px on the longest side.`);
+        }
+        if (dpi !== undefined && dpi < 200) {
+          issues.push(`DPI ${dpi} is below Spreadshirt's 200 DPI minimum for apparel (400 DPI required for non-apparel products).`);
+        } else if (dpi !== undefined && dpi < 300) {
+          warnings.push(`DPI ${dpi} meets Spreadshirt's apparel minimum. 300 DPI recommended for best quality.`);
+        }
+        if (fileSizeMB > 10) {
+          issues.push(`File size ${fileSizeMB.toFixed(1)}MB exceeds Spreadshirt's 10MB limit — the strictest of all 5 platforms. Compress your PNG.`);
+        }
+        recommendations.push("Spreadshirt has the strictest file size limit (10MB). Use PNG compression tools like TinyPNG before uploading.");
+
+        results.push({
+          platform: "Spreadshirt",
+          status: issues.length > 0 ? "FAIL" : warnings.length > 0 ? "WARNING" : "PASS",
+          issues,
+          warnings,
+          recommendations,
+        });
+      }
+
+      // ── OVERALL SUMMARY ───────────────────────────────────────────────────────
+      const totalIssues = results.reduce((sum, r) => sum + r.issues.length, 0);
+      const totalWarnings = results.reduce((sum, r) => sum + r.warnings.length, 0);
+      const failedPlatforms = results.filter(r => r.status === "FAIL").map(r => r.platform);
+      const passingPlatforms = results.filter(r => r.status === "PASS").map(r => r.platform);
+
+      // Universal best-practice check
+      const universalRecommendations: string[] = [];
+      if (fmt !== "PNG") {
+        universalRecommendations.push("PNG is the universal best format for POD — transparent background, lossless quality, accepted everywhere.");
+      }
+      if (dpi !== undefined && dpi < 300) {
+        universalRecommendations.push("300 DPI is the print industry standard. Design at 300 DPI once and you never need to re-export for any platform.");
+      }
+      if (widthPx < 4500 || heightPx < 5400) {
+        universalRecommendations.push("4500×5400px at 300 DPI is the universal POD standard. Use this canvas size for every design and it works on all 5 platforms.");
+      }
+
+      return {
+        filename,
+        checkedAt: new Date().toISOString(),
+        overallStatus: failedPlatforms.length > 0 ? "FAIL" : totalWarnings > 0 ? "WARNING" : "PASS",
+        summary: {
+          totalIssues,
+          totalWarnings,
+          failedPlatforms,
+          passingPlatforms,
+          readyToUpload: failedPlatforms.length === 0,
+        },
+        platformResults: results,
+        universalRecommendations,
+        artworkSpecs: {
+          filename,
+          format: fmt,
+          dimensions: `${widthPx}×${heightPx}px`,
+          dpi: dpi ?? "not provided",
+          fileSizeMB: fileSizeMB.toFixed(2),
+          hasTransparentBackground: hasTransparentBackground ?? "not checked",
+          colourMode: colourMode ?? "not provided",
+        },
+      };
+    }),
+
+  /**
    * Quick-check a single term against all platform rules
    */
   checkTerm: procedure
