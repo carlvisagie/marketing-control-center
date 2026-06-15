@@ -16,7 +16,7 @@
 
 import { z } from "zod";
 import { router, publicProcedure } from "../_core/trpc";
-import { invokeLLM } from "../_core/openai";
+import { generateListingFree, type GeneratedListingFree } from "../_core/listingEngine";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -318,103 +318,29 @@ export const PLATFORM_CONFIG: Record<PODPlatform, {
   },
 };
 
-// ─── AI Listing Generator ─────────────────────────────────────────────────────
+// ─── Listing Generator (deterministic — zero API cost) ───────────────────────
 
+/**
+ * Generates platform-optimised listings for all 5 POD platforms.
+ * Uses the deterministic listing engine — no OpenAI, no API cost, no quota.
+ * Runs entirely on the Render server. Instant, free, never fails.
+ */
 async function generateListingForDesign(design: DesignRecord): Promise<GeneratedListing> {
-  const prompt = `You are an expert POD (Print on Demand) listing optimisation specialist for military aviation merchandise.
+  const free = generateListingFree(design.name, design.aircraft);
 
-Design Details:
-- Aircraft: ${design.aircraft}
-- Design Name: ${design.name}
-- Niche: Military Aviation
-- Brand: Jetfighter1
-- Proven Signal: F-15 sticker on Redbubble sold organically to US, Australia, New Zealand
-
-Target Buyer Personas:
-1. USAF/military veterans and active duty — pride in their aircraft
-2. Aviation enthusiasts — love the engineering and history
-3. Gift buyers — buying for pilots, veterans, aviation fans
-4. Aviation art collectors — want quality prints and posters
-
-Generate optimised listings for ALL 5 platforms. Each platform has different requirements:
-
-Platform Requirements:
-- Amazon Merch: Title max 60 chars, use bullet points (no tags), focus on gift keywords, "T-Shirt" must be in title
-- Redbubble: 15 tags max, casual creative tone, sticker and art focus, "aviation art" angle
-- Etsy: 13 tags max, 140 char title, gift-buyer focus, "personalized" and "gift" keywords, long description
-- Spring: 10 tags, social-commerce friendly, lifestyle angle
-- Spreadshirt: 20 tags, European market, international aviation community
-
-Return a JSON object with this exact structure:
-{
-  "title": "master title for the design",
-  "description": "master description 200 words",
-  "tags": ["tag1", "tag2", ...15 tags],
-  "bulletPoints": ["bullet1", "bullet2", "bullet3", "bullet4", "bullet5"],
-  "price": 24.99,
-  "suggestedColors": ["Black", "Navy", "Military Green"],
-  "targetAudience": "one sentence description",
-  "confidence": 0.87,
-  "platformVariants": {
-    "amazon_merch": {
-      "title": "optimised for Amazon max 60 chars includes T-Shirt",
-      "description": "Amazon listing description with bullet points",
-      "tags": [],
-      "price": 24.99,
-      "productTypes": ["t_shirt", "hoodie"],
-      "specialInstructions": "Use bullet points. No tags. Gift keywords essential."
-    },
-    "redbubble": {
-      "title": "Redbubble title",
-      "description": "Redbubble description",
-      "tags": ["tag1",...15 tags],
-      "price": 19.99,
-      "productTypes": ["sticker", "t_shirt", "poster"],
-      "specialInstructions": "Sticker-first. Aviation art angle. 15 tags."
-    },
-    "etsy": {
-      "title": "Etsy title max 140 chars with gift keywords",
-      "description": "Long Etsy description for gift buyers 300+ words",
-      "tags": ["tag1",...13 tags],
-      "price": 29.99,
-      "productTypes": ["t_shirt", "hoodie", "poster"],
-      "specialInstructions": "Gift buyer focus. Use Printful integration."
-    },
-    "spring": {
-      "title": "Spring title",
-      "description": "Spring description",
-      "tags": ["tag1",...10 tags],
-      "price": 22.99,
-      "productTypes": ["t_shirt", "hoodie", "mug"],
-      "specialInstructions": "Lifestyle angle. Social commerce friendly."
-    },
-    "spreadshirt": {
-      "title": "Spreadshirt title",
-      "description": "Spreadshirt description",
-      "tags": ["tag1",...20 tags],
-      "price": 24.99,
-      "productTypes": ["t_shirt", "hoodie"],
-      "specialInstructions": "European market. International aviation community."
-    }
-  }
-}`;
-
-  const response = await invokeLLM({
-    messages: [
-      { role: "system", content: "You are a world-class POD listing specialist. Return only valid JSON." },
-      { role: "user", content: prompt },
-    ],
-    temperature: 0.6,
-    max_tokens: 3000,
-  });
-
-  const content = response.choices[0]?.message?.content || "";
-  const match = content.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error("Could not parse listing JSON from AI response");
-
-  const listing = JSON.parse(match[0]) as GeneratedListing;
-  listing.generatedAt = new Date().toISOString();
-  return listing;
+  // Map GeneratedListingFree → GeneratedListing (same shape, just strip generatedBy)
+  return {
+    title: free.title,
+    description: free.description,
+    tags: free.tags,
+    bulletPoints: free.bulletPoints,
+    price: free.price,
+    suggestedColors: free.suggestedColors,
+    targetAudience: free.targetAudience,
+    confidence: free.confidence,
+    generatedAt: free.generatedAt,
+    platformVariants: free.platformVariants as unknown as Record<PODPlatform, PlatformListing>,
+  };
 }
 
 // ─── Platform Dispatcher ──────────────────────────────────────────────────────

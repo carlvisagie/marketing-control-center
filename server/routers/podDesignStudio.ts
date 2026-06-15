@@ -13,7 +13,7 @@
 
 import { z } from "zod";
 import { router, publicProcedure } from "../_core/trpc";
-import { invokeLLM } from "../_core/openai";
+import { generateListingFree } from "../_core/listingEngine";
 
 // ─── Unsplash API ─────────────────────────────────────────────────────────────
 
@@ -114,37 +114,17 @@ NEVER use: Top Gun, Maverick, specific squadron numbers/patches, official, licen
 
 Respond with valid JSON only.`;
 
-  const response = await invokeLLM({
-    messages: [{ role: "user", content: prompt }],
-    model: "gpt-4o-mini",
-    temperature: 0.7,
-    max_tokens: 800,
-    response_format: { type: "text" },
-  });
-
-  const content = response.choices[0]?.message?.content || "{}";
-
-  try {
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
-    }
-  } catch {
-    // fallback below
-  }
+  // Deterministic listing engine — zero API cost, instant, never fails
+  const free = generateListingFree(designName, aircraft);
+  const platformKey = platform as keyof typeof free.platformVariants;
+  const variant = free.platformVariants[platformKey] || free.platformVariants.redbubble;
 
   return {
-    title: `${aircraft} Military Aviation ${contentAngle === "veteran_gift" ? "Veteran Gift" : "Art"} Design`,
-    description: `Premium military aviation design featuring the ${aircraft}. Perfect for aviation enthusiasts, veterans, and military families.`,
-    tags: [aircraft.toLowerCase(), "military aviation", "pilot gift", "aviation art", "veteran gift", "aircraft design", "military gift", "jet aircraft", "aviation lover", "fighter jet", "combat aircraft", "pilot shirt", "aviation enthusiast"],
-    bullets: [
-      `Premium ${aircraft} military aviation design`,
-      "Perfect gift for pilots, veterans, and aviation enthusiasts",
-      "High-quality print on comfortable fabric",
-      "Military aviation art that celebrates service and heritage",
-      "Great for birthdays, holidays, and special occasions",
-    ],
-    price: 24.99,
+    title: variant.title,
+    description: variant.description,
+    tags: variant.tags,
+    bullets: free.bulletPoints,
+    price: variant.price,
   };
 }
 
