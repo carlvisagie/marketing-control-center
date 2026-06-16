@@ -38,6 +38,7 @@ export const ENV = {
   // Owner Info
   ownerName: process.env.OWNER_NAME ?? "",
   ownerEmail: process.env.OWNER_EMAIL ?? "",
+
 };
 
 /**

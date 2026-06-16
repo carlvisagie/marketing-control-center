@@ -18,29 +18,13 @@ import {
   Calendar,
   FlaskConical,
   Users,
-  Crosshair,
-  Plane,
-  Upload,
-  Clapperboard,
-  Zap,
-  ShieldCheck,
-  Palette
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
-
-const podNavItems = [
-  { path: "/pod", label: "POD Acquisition Engine", icon: Crosshair, badge: "LIVE" },
-  { path: "/pod-upload", label: "Bulk Upload Engine", icon: Upload, badge: "NEW" },
-  { path: "/pod-media", label: "Viral Media Engine", icon: Clapperboard, badge: "NEW" },
-  { path: "/pod-compliance", label: "Compliance Engine", icon: ShieldCheck, badge: "NEW" },
-  { path: "/pod-design-studio", label: "Design Studio", icon: Palette, badge: "NEW" },
-];
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -117,34 +101,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Navigation */}
         <nav className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-200px)]">
-          {/* POD Engine — top of nav */}
-          <div className="mb-2">
-            <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider px-3 mb-1">✈ Jetfighter1 POD</p>
-            {podNavItems.map((item) => {
-              const isActive = location === item.path;
-              const Icon = item.icon;
-              return (
-                <Link key={item.path} href={item.path}>
-                  <div
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer",
-                      isActive
-                        ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                        : "text-red-400/70 hover:text-red-400 hover:bg-red-500/10"
-                    )}
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="flex-1">{item.label}</span>
-                    <span className="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded">{item.badge}</span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-          <div className="border-t border-slate-800 mb-2 pt-2">
-            <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider px-3 mb-1">Just Talk</p>
-          </div>
           {navItems.map((item) => {
             const isActive = location === item.path;
             const Icon = item.icon;
@@ -161,7 +117,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 >
                   <Icon className="h-4 w-4" />
                   <span className="flex-1">{item.label}</span>
-
                 </div>
               </Link>
             );
