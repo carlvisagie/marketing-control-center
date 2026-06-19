@@ -18,6 +18,7 @@ import {
   Calendar,
   FlaskConical,
   Users,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ const navItems = [
   { path: "/flags", label: "Feature Flags", icon: Flag },
   { path: "/tiktok", label: "TikTok", icon: Video },
   { path: "/settings", label: "Settings", icon: Settings },
+  { path: "/training", label: "Training", icon: GraduationCap },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {

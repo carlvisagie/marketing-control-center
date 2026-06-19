@@ -17,6 +17,7 @@ import AdCopyGenerator from "./pages/AdCopyGenerator";
 import ContentCalendar from "./pages/ContentCalendar";
 import ABTestManager from "./pages/ABTestManager";
 import SocialAccounts from "./pages/SocialAccounts";
+import Training from "./pages/Training";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
             <Route path="/calendar" component={ContentCalendar} />
             <Route path="/ab-tests" component={ABTestManager} />
             <Route path="/accounts" component={SocialAccounts} />
+            <Route path="/training" component={Training} />
             <Route>
               <div className="flex items-center justify-center h-full">
                 <p className="text-slate-400">Page not found</p>
