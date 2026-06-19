@@ -73,8 +73,7 @@ async function startServer() {
     console.info(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
 
-  server.listen(port, () => {
-    console.info(`Server running on http://localhost:${port}/`);
+  server.listen(port, "0.0.0.0", () => {
     console.info(`\n=== ZERO MANUS DEPENDENCIES ===`);
     console.info(`This server is fully portable and self-hostable.`);
     console.info(`================================\n`);
