@@ -7,7 +7,7 @@
  * - Secure password hash generation
  */
 
-import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import {
   login,
@@ -64,7 +64,7 @@ export const simpleAuthRouter = router({
   /**
    * Logout - clear session cookie
    */
-  logout: protectedProcedure.mutation(({ ctx }) => {
+  logout: publicProcedure.mutation(({ ctx }) => {
     clearAuthCookie(ctx.res);
     return { success: true };
   }),

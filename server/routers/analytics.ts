@@ -5,7 +5,7 @@
  * This router provides real-time metrics without affecting Just Talk operations.
  */
 
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { queryJustTalk, testJustTalkConnection } from "../_core/justTalkDb";
 import { sql } from "drizzle-orm";
@@ -14,7 +14,7 @@ export const analyticsRouter = router({
   /**
    * Test connection to Just Talk database
    */
-  testConnection: protectedProcedure.query(async () => {
+  testConnection: publicProcedure.query(async () => {
     const connected = await testJustTalkConnection();
     return {
       connected,
@@ -27,7 +27,7 @@ export const analyticsRouter = router({
   /**
    * Get overview metrics - calls, chats, payments, clients
    */
-  getOverview: protectedProcedure
+  getOverview: publicProcedure
     .input(z.object({
       startDate: z.string().optional(),
       endDate: z.string().optional(),
@@ -113,7 +113,7 @@ export const analyticsRouter = router({
   /**
    * Get daily metrics for charts
    */
-  getDailyMetrics: protectedProcedure
+  getDailyMetrics: publicProcedure
     .input(z.object({
       days: z.number().min(1).max(90).default(30),
     }).optional())
@@ -166,7 +166,7 @@ export const analyticsRouter = router({
   /**
    * Get recent activity feed
    */
-  getRecentActivity: protectedProcedure
+  getRecentActivity: publicProcedure
     .input(z.object({
       limit: z.number().min(1).max(100).default(20),
     }).optional())
@@ -213,7 +213,7 @@ export const analyticsRouter = router({
   /**
    * Get client insights
    */
-  getClientInsights: protectedProcedure.query(async () => {
+  getClientInsights: publicProcedure.query(async () => {
     // Get client status distribution
     const statusDistribution = await queryJustTalk(async (db) => {
       return db.execute(sql`
@@ -265,7 +265,7 @@ export const analyticsRouter = router({
   /**
    * Get AI coach performance metrics
    */
-  getAICoachMetrics: protectedProcedure.query(async () => {
+  getAICoachMetrics: publicProcedure.query(async () => {
     // Get chat feedback ratings
     const feedbackRatings = await queryJustTalk(async (db) => {
       return db.execute(sql`

@@ -11,7 +11,7 @@
  * a "send to phone" workflow for manual posting with AI-generated content.
  */
 
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { invokeLLM, completeJSON } from "../_core/openai";
 import { notifyOwner, isTwilioConfigured } from "../_core/notification";
@@ -64,7 +64,7 @@ export const tiktokRouter = router({
   /**
    * Generate TikTok content with AI
    */
-  generateContent: protectedProcedure
+  generateContent: publicProcedure
     .input(z.object({
       topic: z.string().optional(),
       contentType: z.enum(contentTypes).optional(),
@@ -152,7 +152,7 @@ Focus on:
   /**
    * Get trending topics and hashtags for mental health niche
    */
-  getTrendingTopics: protectedProcedure.query(async () => {
+  getTrendingTopics: publicProcedure.query(async () => {
     const prompt = `As a TikTok trend analyst, identify current trending topics and hashtags in the mental health and wellness space.
 
 Provide analysis in JSON format:
@@ -217,7 +217,7 @@ Provide analysis in JSON format:
   /**
    * Send content to phone via SMS/WhatsApp for easy posting
    */
-  sendToPhone: protectedProcedure
+  sendToPhone: publicProcedure
     .input(z.object({
       content: z.object({
         hook: z.string(),
@@ -288,7 +288,7 @@ Sent from Just Talk Marketing Control Center`;
   /**
    * Generate a week's worth of content ideas
    */
-  generateWeeklyPlan: protectedProcedure
+  generateWeeklyPlan: publicProcedure
     .input(z.object({
       focusArea: z.string().optional(),
       postsPerDay: z.number().min(1).max(5).default(2),
@@ -367,7 +367,7 @@ Generate a weekly plan in JSON format:
   /**
    * Analyze a competitor or trending account
    */
-  analyzeAccount: protectedProcedure
+  analyzeAccount: publicProcedure
     .input(z.object({
       accountName: z.string(),
       analysisType: z.enum(["content_style", "posting_frequency", "engagement_tactics", "full"]).default("full"),
@@ -442,7 +442,7 @@ Provide analysis in JSON format:
   /**
    * Get optimal posting times
    */
-  getOptimalPostingTimes: protectedProcedure.query(async () => {
+  getOptimalPostingTimes: publicProcedure.query(async () => {
     const prompt = `Provide optimal TikTok posting times for a mental health/wellness account targeting adults 25-45.
 
 Return in JSON format:
@@ -497,7 +497,7 @@ Return in JSON format:
   /**
    * Check notification configuration status
    */
-  getNotificationStatus: protectedProcedure.query(() => {
+  getNotificationStatus: publicProcedure.query(() => {
     return {
       configured: isTwilioConfigured(),
       twilioAccountSid: Boolean(ENV.twilioAccountSid),

@@ -1,11 +1,10 @@
 /**
- * tRPC Context - ZERO MANUS DEPENDENCIES
- * 
- * Uses simple JWT authentication instead of Manus OAuth SDK.
+ * tRPC Context — No authentication required.
+ * Single-user private tool. Owner is always logged in.
  */
 
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
-import { getUserFromRequest, type AuthUser } from "./simpleAuth";
+import type { AuthUser } from "./simpleAuth";
 
 // Extended user type for context
 export type ContextUser = AuthUser & {
@@ -24,34 +23,26 @@ export type TrpcContext = {
   user: ContextUser | null;
 };
 
+// Permanent owner — no login required
+const OWNER_USER: ContextUser = {
+  id: 1,
+  username: "carl",
+  role: "admin",
+  openId: "local_1",
+  email: "carl@justtalk.com",
+  name: "Carl Visagie",
+  loginMethod: "none",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  lastSignedIn: new Date(),
+};
+
 export async function createContext(
   opts: CreateExpressContextOptions
 ): Promise<TrpcContext> {
-  let user: ContextUser | null = null;
-
-  try {
-    const authUser = await getUserFromRequest(opts.req);
-    if (authUser) {
-      // Map simple auth user to context user format
-      user = {
-        ...authUser,
-        openId: `local_${authUser.id}`,
-        email: `${authUser.username}@local`,
-        name: authUser.username,
-        loginMethod: "simple",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastSignedIn: new Date(),
-      };
-    }
-  } catch (error) {
-    // Authentication is optional for public procedures.
-    user = null;
-  }
-
   return {
     req: opts.req,
     res: opts.res,
-    user,
+    user: OWNER_USER,
   };
 }

@@ -5,7 +5,7 @@
  * based on configurable performance thresholds.
  */
 
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { invokeLLM } from "../_core/openai";
 
@@ -70,14 +70,14 @@ export const autoOptimizeRouter = router({
   /**
    * Get current optimization thresholds
    */
-  getThresholds: protectedProcedure.query(() => {
+  getThresholds: publicProcedure.query(() => {
     return DEFAULT_THRESHOLDS;
   }),
 
   /**
    * Update optimization thresholds
    */
-  updateThresholds: protectedProcedure
+  updateThresholds: publicProcedure
     .input(z.object({
       minImpressions: z.number().min(50).optional(),
       minDays: z.number().min(1).optional(),
@@ -98,7 +98,7 @@ export const autoOptimizeRouter = router({
   /**
    * Evaluate content performance and recommend actions
    */
-  evaluateContent: protectedProcedure
+  evaluateContent: publicProcedure
     .input(z.object({
       content: z.array(z.object({
         id: z.string(),
@@ -221,7 +221,7 @@ export const autoOptimizeRouter = router({
   /**
    * Execute optimization actions
    */
-  executeActions: protectedProcedure
+  executeActions: publicProcedure
     .input(z.object({
       actions: z.array(z.object({
         contentId: z.string(),
@@ -271,7 +271,7 @@ export const autoOptimizeRouter = router({
   /**
    * Get AI-powered optimization strategy
    */
-  getOptimizationStrategy: protectedProcedure
+  getOptimizationStrategy: publicProcedure
     .input(z.object({
       contentPerformance: z.array(z.object({
         id: z.string(),
@@ -362,7 +362,7 @@ Provide a strategy in JSON format:
   /**
    * Get optimization history/audit log
    */
-  getOptimizationHistory: protectedProcedure
+  getOptimizationHistory: publicProcedure
     .input(z.object({
       limit: z.number().min(1).max(100).default(50),
     }))

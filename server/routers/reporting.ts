@@ -5,7 +5,7 @@
  * This is the "self-reporting" component of the autonomous marketing engine.
  */
 
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { queryJustTalk } from "../_core/justTalkDb";
 import { sql } from "drizzle-orm";
@@ -27,7 +27,7 @@ export const reportingRouter = router({
   /**
    * Generate daily performance summary
    */
-  generateDailySummary: protectedProcedure.mutation(async () => {
+  generateDailySummary: publicProcedure.mutation(async () => {
     // Get today's metrics from Just Talk
     const todayMetrics = await queryJustTalk(async (db) => {
       const result = await db.execute(sql`
@@ -146,7 +146,7 @@ Provide a brief, actionable summary in JSON format:
   /**
    * Generate weekly performance report
    */
-  generateWeeklyReport: protectedProcedure.mutation(async () => {
+  generateWeeklyReport: publicProcedure.mutation(async () => {
     // Get this week's metrics
     const weekMetrics = await queryJustTalk(async (db) => {
       const result = await db.execute(sql`
@@ -235,7 +235,7 @@ Provide a brief, actionable summary in JSON format:
   /**
    * Check for anomalies and generate alerts
    */
-  checkAnomalies: protectedProcedure.query(async () => {
+  checkAnomalies: publicProcedure.query(async () => {
     const alerts: Array<{
       type: "warning" | "critical" | "info";
       category: string;
@@ -331,7 +331,7 @@ Provide a brief, actionable summary in JSON format:
   /**
    * Format summary for SMS/WhatsApp notification
    */
-  formatForNotification: protectedProcedure
+  formatForNotification: publicProcedure
     .input(z.object({
       summary: z.object({
         date: z.string(),

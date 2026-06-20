@@ -5,7 +5,7 @@
  * and optimization recommendations.
  */
 
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getDb } from "../db";
 import { eq, desc, and, sql as drizzleSql } from "drizzle-orm";
@@ -76,7 +76,7 @@ export const abTestingRouter = router({
   /**
    * Create a new A/B test
    */
-  createTest: protectedProcedure
+  createTest: publicProcedure
     .input(z.object({
       name: z.string().min(1),
       description: z.string().optional(),
@@ -115,7 +115,7 @@ export const abTestingRouter = router({
   /**
    * Record metrics for an A/B test variant
    */
-  recordMetrics: protectedProcedure
+  recordMetrics: publicProcedure
     .input(z.object({
       testId: z.string(),
       variant: z.enum(["control", "variant"]),
@@ -140,7 +140,7 @@ export const abTestingRouter = router({
   /**
    * Analyze test results and determine winner
    */
-  analyzeTest: protectedProcedure
+  analyzeTest: publicProcedure
     .input(z.object({
       testId: z.string(),
       control: z.object({
@@ -244,7 +244,7 @@ export const abTestingRouter = router({
   /**
    * Get auto-optimization recommendations
    */
-  getOptimizationRecommendations: protectedProcedure
+  getOptimizationRecommendations: publicProcedure
     .input(z.object({
       tests: z.array(z.object({
         id: z.string(),

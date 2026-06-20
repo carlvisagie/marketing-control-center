@@ -5,7 +5,7 @@
  * This is the "self-learning" component of the autonomous marketing engine.
  */
 
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { invokeLLM } from "../_core/openai";
 import { queryJustTalk } from "../_core/justTalkDb";
@@ -40,7 +40,7 @@ export const aiRecommendationsRouter = router({
   /**
    * Analyze content performance and generate recommendations
    */
-  analyzeContent: protectedProcedure
+  analyzeContent: publicProcedure
     .input(z.object({
       contentItems: z.array(z.object({
         id: z.string(),
@@ -127,7 +127,7 @@ Be specific and actionable. This is for a solo operator who needs clear guidance
   /**
    * Get AI-powered insights from Just Talk data
    */
-  getDataInsights: protectedProcedure.query(async () => {
+  getDataInsights: publicProcedure.query(async () => {
     // Get engagement patterns from Just Talk
     const chatPatterns = await queryJustTalk(async (db) => {
       return db.execute(sql`
@@ -217,7 +217,7 @@ Provide insights in JSON format:
   /**
    * Generate content suggestions based on performance data
    */
-  generateContentSuggestions: protectedProcedure
+  generateContentSuggestions: publicProcedure
     .input(z.object({
       platform: z.enum(["facebook", "instagram", "linkedin", "tiktok"]),
       contentType: z.enum(["emotional", "educational", "promotional", "testimonial"]),
@@ -296,7 +296,7 @@ Provide suggestions in JSON format:
   /**
    * Analyze A/B test results and recommend winner
    */
-  analyzeABTest: protectedProcedure
+  analyzeABTest: publicProcedure
     .input(z.object({
       testName: z.string(),
       variantA: z.object({
