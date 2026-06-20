@@ -302,10 +302,8 @@ router.get("/meta/authorize", (req: Request, res: Response) => {
   const scopes = [
     "pages_show_list",
     "pages_read_engagement",
-    "pages_manage_posts",
     "instagram_basic",
     "instagram_content_publish",
-    "instagram_manage_insights",
   ].join(",");
 
   const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +

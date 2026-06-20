@@ -78,10 +78,8 @@ export const socialPlatformsRouter = router({
       const scopes = [
         "pages_show_list",
         "pages_read_engagement",
-        "pages_manage_posts",
         "instagram_basic",
         "instagram_content_publish",
-        "instagram_manage_insights",
       ];
 
       const url = new URL("https://www.facebook.com/v19.0/dialog/oauth");
