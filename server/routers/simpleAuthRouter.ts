@@ -17,6 +17,8 @@ import {
   generatePasswordHash,
   getAuthStatus,
 } from "../_core/simpleAuth";
+import { getEnvStatus } from "../_core/env";
+import { testJustTalkConnection } from "../_core/justTalkDb";
 
 /**
  * Get client IP from request, handling proxies
@@ -86,6 +88,22 @@ export const simpleAuthRouter = router({
       message: status.configured
         ? "Authentication is configured"
         : "Authentication not configured. Set JWT_SECRET (32+ chars) and ADMIN_PASSWORD_HASH environment variables.",
+    };
+  }),
+
+  /**
+   * Get real environment/service status for the Settings page
+   * Shows which integrations are actually configured
+   */
+  envStatus: publicProcedure.query(async () => {
+    const env = getEnvStatus();
+    // Test actual DB connection
+    const dbConnected = env.databaseUrl ? await testJustTalkConnection() : false;
+    return {
+      database: { configured: env.databaseUrl, connected: dbConnected },
+      openai: { configured: env.openaiApiKey },
+      twilio: { configured: env.twilioConfigured },
+      s3: { configured: env.s3Configured },
     };
   }),
 

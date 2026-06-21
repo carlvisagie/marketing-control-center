@@ -23,7 +23,15 @@ export const attackRouter = router({
   // Get current attack status
   getStatus: publicProcedure.query(async () => {
     const db = await getDb();
-    if (!db) throw new Error("Database not available");
+    const status = getAttackStatus();
+    
+    // If no database, return standby status gracefully
+    if (!db) {
+      return {
+        ...status,
+        isActive: false,
+      };
+    }
     
     // Get system settings
     const settings = await db
@@ -33,7 +41,6 @@ export const attackRouter = router({
       .limit(1);
     
     const isActive = settings[0]?.value === "active";
-    const status = getAttackStatus();
     
     return {
       ...status,

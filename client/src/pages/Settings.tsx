@@ -117,12 +117,31 @@ export default function Settings() {
     },
   ];
 
-  // Backend services
-  const [services] = useState<ServiceConnection[]>([
-    { id: "justtalk", name: "Just Talk Database", status: "connected", lastChecked: new Date() },
-    { id: "openai", name: "OpenAI API", status: "connected", lastChecked: new Date() },
-    { id: "twilio", name: "Twilio (SMS/WhatsApp)", status: "connected", lastChecked: new Date() },
-  ]);
+  // Backend services - real status from server env
+  const { data: envStatus } = trpc.auth.envStatus.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const services: ServiceConnection[] = [
+    { 
+      id: "justtalk", 
+      name: "Just Talk Database", 
+      status: envStatus?.database?.connected ? "connected" : envStatus?.database?.configured ? "error" : "disconnected", 
+      lastChecked: new Date() 
+    },
+    { 
+      id: "openai", 
+      name: "OpenAI API", 
+      status: envStatus?.openai?.configured ? "connected" : "disconnected", 
+      lastChecked: new Date() 
+    },
+    { 
+      id: "twilio", 
+      name: "Twilio (SMS/WhatsApp)", 
+      status: envStatus?.twilio?.configured ? "connected" : "disconnected", 
+      lastChecked: new Date() 
+    },
+  ];
 
   // Connect Meta platform mutation
   const connectMetaMutation = trpc.social.getMetaAuthUrl.useMutation({
